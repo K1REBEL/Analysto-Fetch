@@ -12,14 +12,23 @@ def index():
 def amazon():
    try:
       data = request.get_json()
-      platform = data.get('platform')
-      sku = data.get('sku')
 
-      if platform is None or sku is None:
-         return jsonify({'error': 'Missing platform or sku in request'}), 400
+      if not isinstance(data, list):
+         return jsonify({'error': 'Invalid JSON format. Expecting an array of objects.'}), 400
+
+      platforms = [item.get('platform') for item in data]
+      skus = [item.get('sku') for item in data]
+
+      if None in platforms or None in skus:
+         return jsonify({'error': 'Each object in the array must have "platform" and "sku" keys.'}), 400
+
+      if len(platforms) != len(skus):
+         return jsonify({'error': 'Number of platforms must match number of skus'}), 400
+
+      amazon_data = [{'platform': platform, 'sku': sku} for platform, sku in zip(platforms, skus)]
 
       with open('amazon.json', 'w') as f:
-         json.dump(data, f)
+         json.dump(amazon_data, f)
 
       return jsonify({'message': 'Data Received!'})
 
@@ -28,3 +37,4 @@ def amazon():
 
 if __name__ == '__main__':
    app.run(host='0.0.0.0', port=5000, debug=True)
+
