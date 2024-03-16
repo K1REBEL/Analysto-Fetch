@@ -28,7 +28,7 @@ def base():
       amazon_data = [{'platform': platform, 'sku': sku} for platform, sku in zip(platforms, skus)]
 
       with open('amazon.json', 'w') as f:
-         json.dump(amazon_data, f, indent=4)
+         json.dump(amazon_data, f)
 
       return jsonify({'message': 'Data Received!'})
 
@@ -55,7 +55,7 @@ def amazon():
       scrape_data = [{'asin': asin, 'url': url} for asin, url in zip(asins, urls)]
 
       with open('amazon.json', 'w') as f:
-         json.dump(scrape_data, f)
+         json.dump(scrape_data, f, indent=3)
 
       return jsonify({'message': 'Amazon Data Received!'})
 
@@ -142,6 +142,35 @@ def btech():
 
    except Exception as e:
       return jsonify({'error': str(e)}), 500
+
+
+@app.route('/scrape', methods=['GET'])
+def scrape():
+   try:
+      data = request.get_json()
+
+      if not isinstance(data, list):
+         return jsonify({'error': 'Invalid JSON format. Expecting an array of objects.'}), 400
+
+      asins = [item.get('asin') for item in data]
+      urls = [item.get('url') for item in data]
+
+      if None in asins or None in urls:
+         return jsonify({'error': 'Each object in the array must have "asin" and "url" keys.'}), 400
+
+      if len(asins) != len(urls):
+         return jsonify({'error': 'Number of ASINs must match the number of URLs'}), 400
+
+      scrape_data = [{'asin': asin, 'url': url} for asin, url in zip(asins, urls)]
+
+      with open('amazon.json', 'w') as f:
+         json.dump(scrape_data, f, indent=3)
+
+      return jsonify({'message': 'Amazon Data Received!'})
+
+   except Exception as e:
+      return jsonify({'error': str(e)}), 500
+
 
 if __name__ == '__main__':
    app.run(host='0.0.0.0', port=5000, debug=True)
