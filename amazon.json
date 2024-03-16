@@ -1,14 +1,14 @@
 [
    {
-      "asin": "123456",
-      "url": "amazon.eg/1"
+      "asin": "789",
+      "url": "https://www.amazon.eg/-/en/Tefal-pressure-cooker-clipso-stainless/dp/B085GJPBL3/?_encoding=UTF8&pd_rd_w=CWXx3&content-id=amzn1.sym.e3f5ac00-8f0d-451f-be0f-8ff0b182ebfb&pf_rd_p=e3f5ac00-8f0d-451f-be0f-8ff0b182ebfb&pf_rd_r=5A84XJ9PT5CESE42ZEDK&pd_rd_wg=tTtH4&pd_rd_r=d7e70ae0-9586-4c23-a04c-a0875501abc7&ref_=pd_gw_ref_218d7c17-daf2-4020-81be-c15e8ad7f3ae"
    },
    {
-      "asin": "1234567",
-      "url": "amazon.eg/2"
+      "asin": "789",
+      "url": "https://www.amazon.eg/-/en/Anker-PowerCore-Wireless-Portable-Qi-Certified/dp/B094DNH6C8/?_encoding=UTF8&_encoding=UTF8&ref_=dlx_deals_sc_dcl_img_dt_dealz_tp&pd_rd_w=cjvDy&content-id=amzn1.sym.352bc2d7-3bc3-4d78-b04a-27d05288698f&pf_rd_p=352bc2d7-3bc3-4d78-b04a-27d05288698f&pf_rd_r=79CK62V387DCAJ3S7BH2&pd_rd_wg=8RvDQ&pd_rd_r=f14ae9c0-d768-4d99-8b2a-c08978b0f469"
    },
    {
-      "asin": "1234568",
-      "url": "amazon.eg/3"
+      "asin": "789",
+      "url": "https://www.jumia.com.eg/"
    }
 ]
