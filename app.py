@@ -188,18 +188,20 @@ def scrape():
          # Extract relevant information from the page (customize this part)
          # Example: Get the title
          title = soup.find("title").text.strip()
+         product_title_span = soup.find("span", id="productTitle").text.strip()
 
          # Append the scraped data to the list
-         scraped_data.append({"url": url, "title": title})
+         scraped_data.append({"url": url, "title": title, "prod_title": product_title_span})
 
-         # Save the scraped data to a JSON file
-         with open("scraped_data.json", "w") as json_file:
-            json.dump(scraped_data, json_file, indent=3)
+
 
          
 
-         # return jsonify({"message": "Data scraped successfully!"})
-      
+      # Save the scraped data to a JSON file
+      with open("scraped_data.json", "w") as json_file:
+         json.dump(scraped_data, json_file, indent=3)
+         
+      # return jsonify({"message": "Data scraped successfully!"})
       driver.quit()  # Close the browser
       scrape_data = [{'asin': asin, 'url': url} for asin, url in zip(asins, urls)]
 
