@@ -1,1 +1,1 @@
-[{"platform": "Amazon", "sku": "123456"}, {"platform": "eBay", "sku": "789012"}, {"platform": "Walmart", "sku": "345678"}]
+[{"asin": "123456", "url": "amazon.eg/1"}, {"asin": "1234567", "url": "amazon.eg/2"}, {"asin": "1234568", "url": "amazon.eg/3"}]
