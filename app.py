@@ -78,21 +78,22 @@ def amazon():
          product_price_span = soup.find("span", class_="a-price-whole").text.strip()
          product_seller_span = soup.find("span", class_="offer-display-feature-text-message").text.strip()
          date = datetime.date.today()
+         formatted_date = date.strftime("%d-%m-%Y")
          time = datetime.datetime.now().time()
+         formatted_time = time.strftime("%I:%M:%S %p")
 
          # Append the scraped data to the list
-         scraped_data.append({"url": url, "prod_title": product_title_span, "price": product_price_span, "seller": product_seller_span, "date": date, "time": time})
-      
-      print(date)
+         scraped_data.append({"time": formatted_time, "date": formatted_date, "url": url, "prod_title": product_title_span, "price": product_price_span, "seller": product_seller_span})
+         with open("scraped_data.json", "w") as json_file:
+          json.dump(scraped_data, json_file, indent=3)
       # Save the scraped data to a JSON file
-      with open("scraped_data.json", "w") as json_file:
-         json.dump(scraped_data, json_file, indent=3)
+      
          
       driver.quit()  # Close the browser
-      # scrape_data = [{'asin': asin, 'url': url} for asin, url in zip(asins, urls)]
+      scrape_data = [{'asin': asin, 'url': url} for asin, url in zip(asins, urls)]
 
-      # with open('amazon.json', 'w') as f:
-      #    json.dump(scrape_data, f, indent=3)
+      with open('amazon.json', 'w') as f:
+         json.dump(scrape_data, f, indent=3)
 
       return jsonify({"message": "Amazon Data Scraped Successfully!"})
 
