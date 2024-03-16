@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 from chromedriver_py import binary_path
 from selenium import webdriver
 from flask import Flask, request, jsonify
+import datetime
 
 app = Flask(__name__)
 
@@ -41,6 +42,15 @@ def base():
 @app.route('/amazon', methods=['GET'])
 def amazon():
    try:
+
+      chrome_options = webdriver.ChromeOptions()
+      chrome_options.add_argument("--headless")
+      chrome_options.add_argument("--remote-debugging-port=9222")
+      s = webdriver.ChromeService(executable_path=binary_path)
+      driver = webdriver.Chrome(service=s, options=chrome_options)
+
+      # Initialize an empty list to store scraped data
+      scraped_data = []
       data = request.get_json()
 
       if not isinstance(data, list):
@@ -54,16 +64,41 @@ def amazon():
 
       if len(asins) != len(urls):
          return jsonify({'error': 'Number of ASINs must match the number of URLs'}), 400
+      
+      for url in urls:
+         driver.get(url)  # Open the URL in the browser
+         html_content = driver.page_source  # Get the HTML content
 
-      scrape_data = [{'asin': asin, 'url': url} for asin, url in zip(asins, urls)]
+         # Parse the HTML content using Beautiful Soup
+         soup = BeautifulSoup(html_content, "html.parser")
 
-      with open('amazon.json', 'w') as f:
-         json.dump(scrape_data, f, indent=3)
+         # Extract relevant information from the page (customize this part)
+         # title = soup.find("title").text.strip()
+         product_title_span = soup.find("span", id="productTitle").text.strip()
+         product_price_span = soup.find("span", class_="a-price-whole").text.strip()
+         product_seller_span = soup.find("span", class_="offer-display-feature-text-message").text.strip()
+         date = datetime.date.today()
+         time = datetime.datetime.now().time()
 
-      return jsonify({'message': 'Amazon Data Received!'})
+         # Append the scraped data to the list
+         scraped_data.append({"url": url, "prod_title": product_title_span, "price": product_price_span, "seller": product_seller_span, "date": date, "time": time})
+      
+      print(date)
+      # Save the scraped data to a JSON file
+      with open("scraped_data.json", "w") as json_file:
+         json.dump(scraped_data, json_file, indent=3)
+         
+      driver.quit()  # Close the browser
+      # scrape_data = [{'asin': asin, 'url': url} for asin, url in zip(asins, urls)]
+
+      # with open('amazon.json', 'w') as f:
+      #    json.dump(scrape_data, f, indent=3)
+
+      return jsonify({"message": "Amazon Data Scraped Successfully!"})
 
    except Exception as e:
       return jsonify({'error': str(e)}), 500
+
 
 @app.route('/noon', methods=['POST'])
 def noon():
@@ -189,9 +224,11 @@ def scrape():
          # Example: Get the title
          title = soup.find("title").text.strip()
          product_title_span = soup.find("span", id="productTitle").text.strip()
+         product_price_span = soup.find("span", class_="a-price-whole").text.strip()
+         product_seller_span = soup.find("span", class_="offer-display-feature-text-message").text.strip()
 
          # Append the scraped data to the list
-         scraped_data.append({"url": url, "title": title, "prod_title": product_title_span})
+         scraped_data.append({"url": url, "title": title, "prod_title": product_title_span, "price": product_price_span, "seller": product_seller_span})
 
 
 
