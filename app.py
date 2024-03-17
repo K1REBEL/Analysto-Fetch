@@ -1,16 +1,23 @@
 import os
 import json
+import datetime
+import re
 from bs4 import BeautifulSoup
 from chromedriver_py import binary_path
 from selenium import webdriver
 from flask import Flask, request, jsonify
-import datetime
-import re
+from concurrent.futures import ThreadPoolExecutor
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 app = Flask(__name__)
+
+chrome_options = webdriver.ChromeOptions()
+chrome_options.add_argument("--headless")
+chrome_options.add_argument("--remote-debugging-port=9222")
+s = webdriver.ChromeService(executable_path=binary_path)
+
 
 @app.route('/')
 def index():
@@ -47,10 +54,10 @@ def base():
 def amazon():
    try:
 
-      chrome_options = webdriver.ChromeOptions()
-      chrome_options.add_argument("--headless")
-      chrome_options.add_argument("--remote-debugging-port=9222")
-      s = webdriver.ChromeService(executable_path=binary_path)
+      # chrome_options = webdriver.ChromeOptions()
+      # chrome_options.add_argument("--headless")
+      # chrome_options.add_argument("--remote-debugging-port=9222")
+      # s = webdriver.ChromeService(executable_path=binary_path)
       driver = webdriver.Chrome(service=s, options=chrome_options)
 
       # Initialize an empty list to store scraped data
@@ -179,10 +186,10 @@ def noon():
    #      return jsonify({'error': str(e)}), 500
    try:
 
-      chrome_options = webdriver.ChromeOptions()
-      chrome_options.add_argument("--headless")
-      chrome_options.add_argument("--remote-debugging-port=9222")
-      s = webdriver.ChromeService(executable_path=binary_path)
+      # chrome_options = webdriver.ChromeOptions()
+      # chrome_options.add_argument("--headless")
+      # chrome_options.add_argument("--remote-debugging-port=9222")
+      # s = webdriver.ChromeService(executable_path=binary_path)
       driver = webdriver.Chrome(service=s, options=chrome_options)
 
       # Initialize an empty list to store scraped data
@@ -240,11 +247,10 @@ def noon():
 @app.route('/jumia', methods=['GET'])
 def jumia():
    try:
-
-      chrome_options = webdriver.ChromeOptions()
-      chrome_options.add_argument("--headless")
-      chrome_options.add_argument("--remote-debugging-port=9222")
-      s = webdriver.ChromeService(executable_path=binary_path)
+      # chrome_options = webdriver.ChromeOptions()
+      # chrome_options.add_argument("--headless")
+      # chrome_options.add_argument("--remote-debugging-port=9222")
+      # s = webdriver.ChromeService(executable_path=binary_path)
       driver = webdriver.Chrome(service=s, options=chrome_options)
 
       # Initialize an empty list to store scraped data
@@ -330,16 +336,11 @@ def btech():
 def scrape():
    try:
 
-      # chrome_options = Options()
-      chrome_options = webdriver.ChromeOptions()
-      # chrome_options.binary_location = '/opt/google/chrome/google-chrome'
-      chrome_options.add_argument("--headless")
-      chrome_options.add_argument("--remote-debugging-port=9222")
-
-      s = webdriver.ChromeService(executable_path=binary_path)
+      # chrome_options = webdriver.ChromeOptions()
+      # chrome_options.add_argument("--headless")
+      # chrome_options.add_argument("--remote-debugging-port=9222")
+      # s = webdriver.ChromeService(executable_path=binary_path)
       driver = webdriver.Chrome(service=s, options=chrome_options)
-      # driver = webdriver.Chrome(executable_path="./.venv/bin/chromedriver.exe", options=chrome_options)
-      # driver = webdriver.Chrome(executable_path="./.venv/bin/chromedriver.exe")
 
       # Initialize an empty list to store scraped data
       scraped_data = []
@@ -357,39 +358,38 @@ def scrape():
       if len(asins) != len(urls):
          return jsonify({'error': 'Number of ASINs must match the number of URLs'}), 400
       
-      for url in urls:
-         driver.get(url)  # Open the URL in the browser
-         html_content = driver.page_source  # Get the HTML content
+      def scrape_url(url):
+            # r = requests.get(url)
+            driver.get(url)  # Open the URL in the browser
+            html_content = driver.page_source  # Get the HTML content
 
-         # Parse the HTML content using Beautiful Soup
-         soup = BeautifulSoup(html_content, "html.parser")
+            soup = BeautifulSoup(html_content, "html.parser")
+            product_title_span = soup.find("span", id="productTitle").text.strip()
+            product_price_span = soup.find("span", class_="a-price-whole").text.strip()
+            product_seller_span = soup.find("span", class_="offer-display-feature-text-message").text.strip()
+            date = datetime.date.today()
+            formatted_date = date.strftime("%d-%m-%Y")
+            time = datetime.datetime.now().time()
+            formatted_time = time.strftime("%I:%M:%S %p")
+            return {"date": formatted_date, "time": formatted_time, "url": url, "prod_title": product_title_span, "price": product_price_span, "seller": product_seller_span}
 
-         # Extract relevant information from the page (customize this part)
-         # Example: Get the title
-         title = soup.find("title").text.strip()
-         product_title_span = soup.find("span", id="productTitle").text.strip()
-         product_price_span = soup.find("span", class_="a-price-whole").text.strip()
-         product_seller_span = soup.find("span", class_="offer-display-feature-text-message").text.strip()
+        # Use ThreadPoolExecutor to run scrape_url concurrently
+      with ThreadPoolExecutor(max_workers=10) as executor:
+         futures = [executor.submit(scrape_url, url) for url in urls]
 
-         # Append the scraped data to the list
-         scraped_data.append({"url": url, "title": title, "prod_title": product_title_span, "price": product_price_span, "seller": product_seller_span})
+      results = [future.result() for future in futures]
 
-
-
-         
-
-      # Save the scraped data to a JSON file
       with open("scraped_data.json", "w") as json_file:
-         json.dump(scraped_data, json_file, indent=3)
+         json.dump(results, json_file, indent=3)
+      
          
-      # return jsonify({"message": "Data scraped successfully!"})
       driver.quit()  # Close the browser
-      scrape_data = [{'asin': asin, 'url': url} for asin, url in zip(asins, urls)]
+      # scrape_data = [{'asin': asin, 'url': url} for asin, url in zip(asins, urls)]
 
-      with open('amazon.json', 'w') as f:
-         json.dump(scrape_data, f, indent=3)
+      # with open('amazon.json', 'w') as f:
+      #    json.dump(scrape_data, f, indent=3)
 
-      return jsonify({"message": "Data scraped successfully!"})
+      return jsonify({"message": "Amazon Data Scraped Successfully!"})
 
    except Exception as e:
       return jsonify({'error': str(e)}), 500
