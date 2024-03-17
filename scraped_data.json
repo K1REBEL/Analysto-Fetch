@@ -1,30 +1,10 @@
-{
-   "DVS05020S": [
-      {
-         "price": "EGP 21,499.00",
-         "url": "https://www.jumia.com.eg/beko-dvs05020s-time-delay-led-display-10-person-45cm-5-programs-half-load-washing-machine-silver-38432754.html"
-      },
-      {
-         "price": "EGP 23,682.00",
-         "url": "https://www.jumia.com.eg/beko-dvs05020s-inverter-dishwasher-with-led-display-5-programs-silver-38437716.html"
-      },
-      {
-         "price": "EGP 23,059.00",
-         "url": "https://www.jumia.com.eg/beko-dvs05020s-dishwasher-45-cm-5-program-10-person-led-display-half-load-time-delay-silver-58436949.html"
-      },
-      {
-         "price": "EGP 24,750.00",
-         "url": "https://www.jumia.com.eg/beko-dvs05020s-freestanding-dishwasher-10-place-settings-slimline-56657522.html"
-      },
-      {
-         "price": "EGP 21,739.00",
-         "url": "https://www.jumia.com.eg/dvs05020s-inverter-dishwasher-with-led-display-5-programs-silver-beko-mpg943773.html"
-      }
-   ],
-   "sms25ab00v": [
-      {
-         "price": "EGP 31,999.00",
-         "url": "https://www.jumia.com.eg/bosch-dishwasher-12-persons-5-programs-60cm-stainless-color-sms25ai00v-38750857.html"
-      }
-   ]
-}
+[
+   {
+      "time": "04:07:37 PM",
+      "date": "17-03-2024",
+      "url": "https://www.jumia.com.eg/catalog/?q=sms25ab00v",
+      "prod_title": "Bosch Dishwasher 12 Persons 5 Programs 60cm Stainless Color SMS25AI00V",
+      "price": "EGP 31,999.00",
+      "seller": "Al moufeed MPDS Marketplace"
+   }
+]

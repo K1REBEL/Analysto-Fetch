@@ -311,7 +311,7 @@ def noon():
 @app.route('/jumia', methods=['GET'])
 def jumia():
     try:
-        scraped_data = {}  # Initialize an empty dictionary to store scraped data
+        scraped_data = []  # Initialize an empty dictionary to store scraped data
         data = request.get_json()
 
         if not isinstance(data, list):
@@ -326,12 +326,14 @@ def jumia():
             # Extract all products from the page
             products = soup.select("article.prd")
             query_data = []  # Initialize an empty list to store data for this query
+            final_data = []
+            scraped_data = []
 
             for product in products:
                 price = product.find("div", class_="prc")
                 prod_url = product.select(("article.prd > a"))
                 href = prod_url[1]["href"]
-                href_final = "https://www.jumia.com.eg"+href
+                href_data = "https://www.jumia.com.eg"+href
                 if price:
                     product_price_class = price.text.strip()
                     product_price_class = product_price_class.replace(",", "")
@@ -343,17 +345,36 @@ def jumia():
                         product_price = None
 
                     # Append the scraped data for this product to the query data list
-                    query_data.append({"price": product_price_class, "url": href_final})
+                    query_data.append({"price": product_price, "url": href_data})
 
             # Add the query data to the scraped_data dictionary
-            scraped_data[query] = query_data
-            #   # Find the lowest price for this query
-            # lowest_price = None
-            # if query_data:
-            #     lowest_price = min(query_data, key=lambda x: x["price"])["price"]
+            # scraped_data[query] = query_data
+              # Find the lowest price for this query
+            lowest_price = None
+            lowest_price_url = None
+            if query_data:
+                lowest_price_data = min(query_data, key=lambda x: x["price"])
+                lowest_price = lowest_price_data["price"]
+                lowest_price_url = lowest_price_data["url"]
 
-            # Add the lowest price for this query to the scraped_data dictionary
-            # scraped_data[query] = lowest_price   
+            # Add the lowest price for this query to the scraped_data dictionary`
+            final_data.append({"price": lowest_price, "url": lowest_price_url})
+            # scraped_data[query] = final_data  
+
+            response2 = requests.get(lowest_price_url)
+            soup1 = BeautifulSoup(response2.content, "html.parser")
+
+               
+            product_title_span = soup1.select("div.-prl > h1.-pts")[0].text
+            product_price_span = soup1.find("span", class_="-fs24").text.strip()
+            product_seller_span = soup1.select("div.-pts > section.card > div.-pas > p.-pbs")[0].text
+            date = datetime.date.today()
+            formatted_date = date.strftime("%d-%m-%Y")
+            time = datetime.datetime.now().time()
+            formatted_time = time.strftime("%I:%M:%S %p")
+
+         # Append the scraped data to the list
+            scraped_data.append({"time": formatted_time, "date": formatted_date, "url": url, "prod_title":product_title_span, "price":product_price_span, "seller":product_seller_span}) 
 
         with open("scraped_data.json", "w") as json_file:
             json.dump(scraped_data, json_file, indent=3)
