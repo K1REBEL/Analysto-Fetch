@@ -1,16 +1,19 @@
 import os
-import json
-import datetime
 import re
+import json
+import queue
+import requests
+import datetime
+import threading
+import concurrent.futures
 from bs4 import BeautifulSoup
-from chromedriver_py import binary_path
 from selenium import webdriver
+from chromedriver_py import binary_path
 from flask import Flask, request, jsonify
 from concurrent.futures import ThreadPoolExecutor
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-import requests
 
 app = Flask(__name__)
 
@@ -425,18 +428,139 @@ def btech():
       return jsonify({'error': str(e)}), 500
 
 
+# @app.route('/scrape', methods=['GET'])
+# def scrape():
+#    try:
+
+#       # chrome_options = webdriver.ChromeOptions()
+#       # chrome_options.add_argument("--headless")
+#       # chrome_options.add_argument("--remote-debugging-port=9222")
+#       # s = webdriver.ChromeService(executable_path=binary_path)
+#       driver = webdriver.Chrome(service=s, options=chrome_options)
+
+#       # Initialize an empty list to store scraped data
+#       scraped_data = []
+#       data = request.get_json()
+
+#       if not isinstance(data, list):
+#          return jsonify({'error': 'Invalid JSON format. Expecting an array of objects.'}), 400
+
+#       asins = [item.get('asin') for item in data]
+#       urls = [item.get('url') for item in data]
+
+#       if None in asins or None in urls:
+#          return jsonify({'error': 'Each object in the array must have "asin" and "url" keys.'}), 400
+
+#       if len(asins) != len(urls):
+#          return jsonify({'error': 'Number of ASINs must match the number of URLs'}), 400
+      
+#       # original_array = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+#       split_urls = split_array(urls)
+      
+#       results = []
+#       # def scrape_url(url):
+#       #       # r = requests.get(url)
+#       #       driver.get(url)  # Open the URL in the browser
+#       #       html_content = driver.page_source  # Get the HTML content
+
+#       #       soup = BeautifulSoup(html_content, "html.parser")
+#       #       title = soup.find("title").text.strip()
+#       #       # product_title_span = soup.find("span", id="productTitle").text.strip()
+#       #       product_price_span = soup.find("span", class_="-fs24").text.strip()
+#       #       # product_seller_span = soup.find("span", class_="offer-display-feature-text-message").text.strip()
+#       #       date = datetime.date.today()
+#       #       formatted_date = date.strftime("%d-%m-%Y")
+#       #       time = datetime.datetime.now().time()
+#       #       formatted_time = time.strftime("%I:%M:%S %p")
+#       #       results.append({"date": formatted_date, "time": formatted_time, "url": url, "title": title, "price": product_price_span})
+#       #       with open("scraped_data.json", "w") as json_file:
+#       #          json.dump(results, json_file, indent=3)
+#       #       # return {"date": formatted_date, "time": formatted_time, "url": url, "title": title}
+#       #       return
+
+#         # Use ThreadPoolExecutor to run scrape_url concurrently
+#       # with ThreadPoolExecutor(max_workers=10) as executor:
+#       #    futures = [executor.submit(scrape_url, url) for url in urls]
+
+#       # results = [future.result() for future in futures]
+
+#       def scrape_urls(url_list):
+#          for url in url_list:
+#             driver.get(url)  # Open the URL in the browser
+#             html_content = driver.page_source  # Get the HTML content
+
+#             soup = BeautifulSoup(html_content, "html.parser")
+#             title = soup.find("title").text.strip()
+#             product_price_span = soup.find("span", class_="-fs24").text.strip()
+
+#             date = datetime.date.today()
+#             formatted_date = date.strftime("%d-%m-%Y")
+#             time = datetime.datetime.now().time()
+#             formatted_time = time.strftime("%I:%M:%S %p")
+
+#             results.append({"date": formatted_date, "time": formatted_time, "url": url, "title": title, "price": product_price_span})
+
+#          with open("scraped_data.json", "w") as json_file:
+#             json.dump(results, json_file, indent=3)
+         
+#          return
+
+
+#       with concurrent.futures.ThreadPoolExecutor(max_workers=len(urls)) as executor:
+#          # Submit tasks and collect futures
+#          future_to_url = {executor.submit(scrape_urls, url_listaya): url_listaya for url_listaya in split_urls}
+#          for future in concurrent.futures.as_completed(future_to_url):
+#             url = future_to_url[future]
+#             try:
+#                result = future.result()
+#                # results.append(result)
+#             except Exception as e:
+#                print(f"Error scraping {url}: {e}")
+
+#       # Save results to a JSON file
+#       # with open("scraped_data.json", "w") as json_file:
+#       #    json.dump(results, json_file, indent=3)
+      
+         
+#       driver.quit()  # Close the browser
+#       # scrape_data = [{'asin': asin, 'url': url} for asin, url in zip(asins, urls)]
+
+#       # with open('amazon.json', 'w') as f:
+#       #    json.dump(scrape_data, f, indent=3)
+
+#       return jsonify({"message": "Amazon Data Scraped Successfully!"})
+
+#    except Exception as e:
+#       return jsonify({'error': str(e)}), 500
+   
+
 @app.route('/scrape', methods=['GET'])
 def scrape():
    try:
 
-      # chrome_options = webdriver.ChromeOptions()
-      # chrome_options.add_argument("--headless")
-      # chrome_options.add_argument("--remote-debugging-port=9222")
-      # s = webdriver.ChromeService(executable_path=binary_path)
-      driver = webdriver.Chrome(service=s, options=chrome_options)
+      def scrape_urls(url, results_queue):
+         # for url in url_list:
+            driver = webdriver.Chrome(service=s, options=chrome_options)
+            
+            driver.get(url)  # Open the URL in the browser
+            html_content = driver.page_source  # Get the HTML content
 
-      # Initialize an empty list to store scraped data
-      scraped_data = []
+            soup = BeautifulSoup(html_content, "html.parser")
+            title = soup.find("title").text.strip()
+            product_price_span = soup.find("span", class_="-fs24").text.strip()
+
+            date = datetime.date.today()
+            formatted_date = date.strftime("%d-%m-%Y")
+            time = datetime.datetime.now().time()
+            formatted_time = time.strftime("%I:%M:%S %p")
+
+            results_queue.put({"date": formatted_date, "time": formatted_time, "url": url, "title": title, "price": product_price_span})
+            driver.quit()
+
+            return
+
+      # driver = webdriver.Chrome(service=s, options=chrome_options)
+
       data = request.get_json()
 
       if not isinstance(data, list):
@@ -450,42 +574,52 @@ def scrape():
 
       if len(asins) != len(urls):
          return jsonify({'error': 'Number of ASINs must match the number of URLs'}), 400
-      
-      def scrape_url(url):
-            # r = requests.get(url)
-            driver.get(url)  # Open the URL in the browser
-            html_content = driver.page_source  # Get the HTML content
 
-            soup = BeautifulSoup(html_content, "html.parser")
-            product_title_span = soup.find("span", id="productTitle").text.strip()
-            product_price_span = soup.find("span", class_="a-price-whole").text.strip()
-            product_seller_span = soup.find("span", class_="offer-display-feature-text-message").text.strip()
-            date = datetime.date.today()
-            formatted_date = date.strftime("%d-%m-%Y")
-            time = datetime.datetime.now().time()
-            formatted_time = time.strftime("%I:%M:%S %p")
-            return {"date": formatted_date, "time": formatted_time, "url": url, "prod_title": product_title_span, "price": product_price_span, "seller": product_seller_span}
+      results_queue = queue.Queue()
+      threads = []
 
-        # Use ThreadPoolExecutor to run scrape_url concurrently
-      with ThreadPoolExecutor(max_workers=10) as executor:
-         futures = [executor.submit(scrape_url, url) for url in urls]
+      for url in urls:
+         thread = threading.Thread(target=scrape_urls, args=(url, results_queue))
+         thread.start()
+         threads.append(thread)
 
-      results = [future.result() for future in futures]
+      split_urls = split_array(urls)
+
+      # for url_list in split_urls:
+      #    thread = threading.Thread(target=scrape_urls, args=(url_list, results_queue))
+      #    thread.start()
+      #    threads.append(thread)
+
+        # Wait for all threads to finish
+      for thread in threads:
+            thread.join()
+
+        # Gather results from the queue
+      results = []
+      while not results_queue.empty():
+            results.append(results_queue.get())
 
       with open("scraped_data.json", "w") as json_file:
-         json.dump(results, json_file, indent=3)
-      
-         
-      driver.quit()  # Close the browser
-      # scrape_data = [{'asin': asin, 'url': url} for asin, url in zip(asins, urls)]
+            json.dump(results, json_file, indent=3)
 
-      # with open('amazon.json', 'w') as f:
-      #    json.dump(scrape_data, f, indent=3)
+      # driver.quit()
 
       return jsonify({"message": "Amazon Data Scraped Successfully!"})
 
    except Exception as e:
       return jsonify({'error': str(e)}), 500
+
+
+@app.route('/test', methods=['GET'])
+def test():
+
+   original_array = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+   result_array = split_array(original_array)
+   print(result_array)
+   return jsonify(result_array)
+
+# Example usage:
+
 
 
 if __name__ == '__main__':
