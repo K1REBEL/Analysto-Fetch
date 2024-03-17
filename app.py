@@ -22,6 +22,15 @@ chrome_options.add_argument("--headless")
 chrome_options.add_argument("--remote-debugging-port=9222")
 s = webdriver.ChromeService(executable_path=binary_path)
 
+def split_array(arr):
+      # Calculate the size of each subarray
+   subarray_size = len(arr) // 10
+
+      # Split the array into 5 subarrays
+   subarrays = [arr[i * subarray_size: (i + 1) * subarray_size] for i in range(10)]
+
+   return subarrays
+
 
 @app.route('/')
 def index():
