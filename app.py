@@ -10,6 +10,7 @@ from concurrent.futures import ThreadPoolExecutor
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+import requests
 
 app = Flask(__name__)
 
@@ -244,65 +245,123 @@ def noon():
       return jsonify({'error': str(e)}), 500
 
 
-@app.route('/jumia', methods=['GET'])
-def jumia():
-   try:
-      # chrome_options = webdriver.ChromeOptions()
-      # chrome_options.add_argument("--headless")
-      # chrome_options.add_argument("--remote-debugging-port=9222")
-      # s = webdriver.ChromeService(executable_path=binary_path)
-      driver = webdriver.Chrome(service=s, options=chrome_options)
+# @app.route('/jumia', methods=['GET'])
+# def jumia():
+#    try:
+     
+#       # driver = webdriver.Chrome(service=s, options=chrome_options)
 
-      # Initialize an empty list to store scraped data
-      scraped_data = []
-      data = request.get_json()
+#       # Initialize an empty list to store scraped data
+#       scraped_data = []
+#       data = request.get_json()
 
-      if not isinstance(data, list):
-         return jsonify({'error': 'Invalid JSON format. Expecting an array of objects.'}), 400
+#       if not isinstance(data, list):
+#          return jsonify({'error': 'Invalid JSON format. Expecting an array of objects.'}), 400
 
-      asins = [item.get('asin') for item in data]
-      urls = [item.get('url') for item in data]
+#       # asins = [item.get('asin') for item in data]
+#       # urls = [item.get('url') for item in data]
+#       querys = [item.get('query') for item in data]
 
-      if None in asins or None in urls:
-         return jsonify({'error': 'Each object in the array must have "asin" and "url" keys.'}), 400
+#       # if None in asins or None in urls:
+#       #    return jsonify({'error': 'Each object in the array must have "asin" and "url" keys.'}), 400
 
-      if len(asins) != len(urls):
-         return jsonify({'error': 'Number of ASINs must match the number of URLs'}), 400
+#       # if len(asins) != len(urls):
+#       #    return jsonify({'error': 'Number of ASINs must match the number of URLs'}), 400
       
-      for url in urls:
-         driver.get(url)  # Open the URL in the browser
-         html_content = driver.page_source  # Get the HTML content
+#       for query in querys:
+#          # driver.get(url)  # Open the URL in the browser
+#          # html_content = driver.page_source  # Get the HTML content
 
-         # Parse the HTML content using Beautiful Soup
-         soup = BeautifulSoup(html_content, "html.parser")
+#          url = f"https://www.jumia.com.eg/catalog/?q={query}"
+#          response = requests.get(url)
 
-         # Extract relevant information from the page (customize this part)
-         title = soup.find("title").text.strip()
-         product_title_span = soup.select("div.-prl > h1.-pts")[0].text
-         product_price_span = soup.find("span", class_="-fs24").text.strip()
-         product_seller_span = soup.select("div.-pts > section.card > div.-pas > p.-pbs")[0].text
-         date = datetime.date.today()
-         formatted_date = date.strftime("%d-%m-%Y")
-         time = datetime.datetime.now().time()
-         formatted_time = time.strftime("%I:%M:%S %p")
+#          # Parse the HTML content using Beautiful Soup
+#          soup = BeautifulSoup(response.content, "html.parser")
 
-         # Append the scraped data to the list
-         scraped_data.append({"time": formatted_time, "date": formatted_date, "url": url, "title": title, "prod_title":product_title_span, "price":product_price_span, "seller":product_seller_span})
-         with open("scraped_data.json", "w") as json_file:
-          json.dump(scraped_data, json_file, indent=3)
-      # Save the scraped data to a JSON file
+#          # Extract relevant information from the page (customize this part)
+#          title = soup.find("title").text.strip()
+#          # product_title_span = soup.select("div.-prl > h1.-pts")[0].text
+#          product_price_span = soup.find("div", class_="prc").text.strip()
+#          product_url_span = soup.select("article.prd > a")
+#          href = product_url_span[1]['href']
+#          # product_seller_span = soup.select("div.-pts > section.card > div.-pas > p.-pbs")[0].text
+#          date = datetime.date.today()
+#          formatted_date = date.strftime("%d-%m-%Y")
+#          time = datetime.datetime.now().time()
+#          formatted_time = time.strftime("%I:%M:%S %p")
+
+#          # Append the scraped data to the list
+#          scraped_data.append({"time": formatted_time, "date": formatted_date, "url": url, "title": title, "price":product_price_span, "url":href})
+#          with open("scraped_data.json", "w") as json_file:
+#           json.dump(scraped_data, json_file, indent=3)
+#       # Save the scraped data to a JSON file
       
          
-      driver.quit()  # Close the browser
-      scrape_data = [{'asin': asin, 'url': url} for asin, url in zip(asins, urls)]
+#       # driver.quit()  # Close the browser
+#       # scrape_data = [{'asin': asin, 'url': url} for asin, url in zip(asins, urls)]
 
-      with open('jumia.json', 'w') as f:
-         json.dump(scrape_data, f, indent=3)
+#       # with open('jumia.json', 'w') as f:
+#       #    json.dump(scrape_data, f, indent=3)
 
-      return jsonify({"message": "Jumia Data Scraped Successfully!"})
+#       return jsonify({"message": "Jumia Data Scraped Successfully!"})
 
-   except Exception as e:
-      return jsonify({'error': str(e)}), 500
+#    except Exception as e:
+#       return jsonify({'error': str(e)}), 500
+
+@app.route('/jumia', methods=['GET'])
+def jumia():
+    try:
+        scraped_data = {}  # Initialize an empty dictionary to store scraped data
+        data = request.get_json()
+
+        if not isinstance(data, list):
+            return jsonify({'error': 'Invalid JSON format. Expecting an array of objects.'}), 400
+
+        for item in data:
+            query = item.get('query')
+            url = f"https://www.jumia.com.eg/catalog/?q={query}"
+            response = requests.get(url)
+            soup = BeautifulSoup(response.content, "html.parser")
+
+            # Extract all products from the page
+            products = soup.select("article.prd")
+            query_data = []  # Initialize an empty list to store data for this query
+
+            for product in products:
+                price = product.find("div", class_="prc")
+                prod_url = product.select(("article.prd > a"))
+                href = prod_url[1]["href"]
+                href_final = "https://www.jumia.com.eg"+href
+                if price:
+                    product_price_class = price.text.strip()
+                    product_price_class = product_price_class.replace(",", "")
+                    product_price_pattern = r'\d+\.\d+'
+                    matches = re.findall(product_price_pattern, product_price_class)
+                    if matches:
+                        product_price = float(matches[0])
+                    else:
+                        product_price = None
+
+                    # Append the scraped data for this product to the query data list
+                    query_data.append({"price": product_price_class, "url": href_final})
+
+            # Add the query data to the scraped_data dictionary
+            scraped_data[query] = query_data
+            #   # Find the lowest price for this query
+            # lowest_price = None
+            # if query_data:
+            #     lowest_price = min(query_data, key=lambda x: x["price"])["price"]
+
+            # Add the lowest price for this query to the scraped_data dictionary
+            # scraped_data[query] = lowest_price   
+
+        with open("scraped_data.json", "w") as json_file:
+            json.dump(scraped_data, json_file, indent=3)
+
+        return jsonify({"message": "Jumia Data Scraped Successfully!"})
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/btech', methods=['POST'])
 def btech():
@@ -398,3 +457,14 @@ def scrape():
 if __name__ == '__main__':
    app.run(host='0.0.0.0', port=5000, debug=True)
 
+# if product_price_span:
+   #              product_price_span = product_price_span.text.strip()
+   #              # Define a regex pattern to extract the numeric part of the price
+   #              product_price_pattern = r'\d+\.\d+'
+   #              matches = re.findall(product_price_pattern, product_price_span)
+   #              if matches:
+   #                  product_price = float(matches[0])
+   #              else:
+   #                  product_price = None
+   #          else:
+   #              product_price = None
