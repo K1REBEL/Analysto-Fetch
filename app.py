@@ -20,8 +20,8 @@ app = Flask(__name__)
 chrome_options = webdriver.ChromeOptions()
 chrome_options.add_argument("--headless")
 chrome_options.add_argument("--remote-debugging-port=9222")
-s = webdriver.ChromeService(executable_path=binary_path)
 chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36")  # Set user-agent header
+s = webdriver.ChromeService(executable_path=binary_path)
 
 
 def split_array(arr):
@@ -292,8 +292,9 @@ def btech():
          soup = BeautifulSoup(response.content, "html.parser")
 
          prod_title = soup.find("span", class_="base").text.strip()
+         # prod_price = soup.find("span", class_="price").text.strip()
          prod_price = soup.find("span", class_="price").text.strip()
-         prod_seller = soup.find("span", class_="seller-name").text.strip()
+         prod_seller = soup.find("a", class_="gtm-open-seller-page").text.strip()
          # prod_seller = soup.find("span", class_="normal-text").text.strip()
 
          date = datetime.date.today()
