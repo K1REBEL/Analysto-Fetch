@@ -1,11 +1,15 @@
 import os
 import re
 import json
+import time
 import queue
 import requests
 import datetime
+import schedule
 import threading
+import subprocess
 import concurrent.futures
+from check_proxies import prepare
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from chromedriver_py import binary_path
@@ -21,6 +25,35 @@ chrome_options = webdriver.ChromeOptions()
 chrome_options.add_argument("--headless")
 chrome_options.add_argument("--remote-debugging-port=9222")
 s = webdriver.ChromeService(executable_path=binary_path)
+q = queue.Queue()
+
+def get_proxies():
+   with open("valid_proxies.txt", "r") as f:
+      proxies = f.read().split("\n")
+      for p in proxies:
+         q.put(p)
+
+# def run_other_script():
+#     subprocess.run(["python", "check_proxies.py"])
+
+# def run_check_proxies():
+#     # Option 1: Run the check_proxies.py script
+#    #  import subprocess
+#    #  subprocess.run(["python", "check_proxies.py"])
+
+#     # Option 2: Run the prepare() function from check_proxies.py
+#     # from check_proxies import prepare
+#     prepare()
+
+# def schedule_check_proxies():
+#     schedule.every(2).minutes.do(run_check_proxies)
+
+#     while True:
+#         schedule.run_pending()
+#         time.sleep(60)  # Sleep for 1 minute before checking for scheduled jobs again
+
+# # Uncomment the line below to start scheduling the check_proxies job
+# schedule_check_proxies()
 
 def split_array(arr):
       # Calculate the size of each subarray
@@ -560,6 +593,76 @@ def scrape():
 
    except Exception as e:
       return jsonify({'error': str(e)}), 500
+   
+
+@app.route('/scrape3', methods=['GET'])
+def scrape3():
+   global q
+   while not q.empty():
+      proxy = q.get()
+      try:
+         # start_time = time.time()
+         # res = requests.get("http://ipinfo.io/json",
+         #                    proxies = { "http": proxy,
+         #                                "https": proxy},
+         #                   timeout=5)
+         # elapsed_time = time.time() - start_time
+                  driver = webdriver.Chrome(service=s, options=chrome_options)
+
+         # Initialize an empty list to store scraped data
+         scraped_data = []
+         data = request.get_json()
+
+         if not isinstance(data, list):
+            return jsonify({'error': 'Invalid JSON format. Expecting an array of objects.'}), 400
+
+         asins = [item.get('asin') for item in data]
+         urls = [item.get('url') for item in data]
+
+         if None in asins or None in urls:
+            return jsonify({'error': 'Each object in the array must have "asin" and "url" keys.'}), 400
+
+         if len(asins) != len(urls):
+            return jsonify({'error': 'Number of ASINs must match the number of URLs'}), 400
+         
+         for url in urls:
+            driver.get(url)  # Open the URL in the browser
+            html_content = driver.page_source  # Get the HTML content
+
+            # Parse the HTML content using Beautiful Soup
+            soup = BeautifulSoup(html_content, "html.parser")
+
+            # Extract relevant information from the page (customize this part)
+            # title = soup.find("title").text.strip()
+            product_title_span = soup.find("span", id="productTitle").text.strip()
+            product_price_span = soup.find("span", class_="a-price-whole").text.strip()
+            product_seller_span = soup.find("span", class_="offer-display-feature-text-message").text.strip()
+            date = datetime.date.today()
+            formatted_date = date.strftime("%d-%m-%Y")
+            time = datetime.datetime.now().time()
+            formatted_time = time.strftime("%I:%M:%S %p")
+
+            # Append the scraped data to the list
+            scraped_data.append({"time": formatted_time, "date": formatted_date, "url": url, "prod_title": product_title_span, "price": product_price_span, "seller": product_seller_span})
+            with open("scraped_data.json", "w") as json_file:
+               json.dump(scraped_data, json_file, indent=3)
+         # Save the scraped data to a JSON file
+         
+            
+         driver.quit()  # Close the browser
+         scrape_data = [{'asin': asin, 'url': url} for asin, url in zip(asins, urls)]
+
+         with open('amazon.json', 'w') as f:
+            json.dump(scrape_data, f, indent=3)
+
+         return jsonify({"message": "Amazon Data Scraped Successfully!"})
+      except:
+         continue
+   try:
+
+
+   except Exception as e:
+      return jsonify({'error': str(e)}), 500
 
 
 @app.route('/test', methods=['GET'])
@@ -574,6 +677,7 @@ def test():
 
 if __name__ == '__main__':
    app.run(host='0.0.0.0', port=5000, debug=True)
+
 
 # if product_price_span:
    #              product_price_span = product_price_span.text.strip()
