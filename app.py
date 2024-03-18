@@ -354,6 +354,7 @@ def btech():
          prod_title = soup.find("span", class_="base").text.strip()
          prod_price = soup.find("span", class_="price").text.strip()
          prod_seller = soup.find("span", class_="seller-name").text.strip()
+         # prod_seller = soup.find("span", class_="normal-text").text.strip()
 
          date = datetime.date.today()
          formatted_date = date.strftime("%d-%m-%Y")
@@ -367,7 +368,6 @@ def btech():
 
 
       btech_data = [{'platform': "B.TECH", 'sku': sku, 'URL': url} for url, sku in zip(urls, skus)]
-
       with open('btech.json', 'w') as f:
          json.dump(btech_data, f)
 
@@ -566,8 +566,6 @@ def test():
    result_array = split_array(original_array)
    print(result_array)
    return jsonify(result_array)
-
-# Example usage:
 
 
 

@@ -1,22 +1,26 @@
 [
    {
-      "query": "DVS05020S",
-      "time": "04:22:25 PM",
-      "date": "17-03-2024",
-      "product_url": "https://www.jumia.com.eg/beko-dvs05020s-time-delay-led-display-10-person-45cm-5-programs-half-load-washing-machine-silver-38432754.html",
-      "url": "https://www.jumia.com.eg/catalog/?q=DVS05020S",
-      "prod_title": "Beko DVS05020S - Time Delay LED Display 10 Person 45cm 5 Programs Half Load Washing Machine - Silver",
-      "price": "EGP 21,499.00",
-      "seller": "Jumia"
+      "date": "18-03-2024",
+      "time": "05:48:42 AM",
+      "url": "https://btech.com/en/zanussi-wm-8kg-zwf8221dl7.html",
+      "product title": "Zanussi Steammax Inverter Washing Machine, 8 Kg, Dark Grey - ZWF8221DL7",
+      "price": "26,919 EGP",
+      "seller": ""
    },
    {
-      "query": "sms25ab00v",
-      "time": "04:22:28 PM",
-      "date": "17-03-2024",
-      "product_url": "https://www.jumia.com.eg/bosch-dishwasher-12-persons-5-programs-60cm-stainless-color-sms25ai00v-38750857.html",
-      "url": "https://www.jumia.com.eg/catalog/?q=sms25ab00v",
-      "prod_title": "Bosch Dishwasher 12 Persons 5 Programs 60cm Stainless Color SMS25AI00V",
-      "price": "EGP 31,999.00",
-      "seller": "Al moufeed MPDS Marketplace"
+      "date": "18-03-2024",
+      "time": "05:48:43 AM",
+      "url": "https://btech.com/en/lg-no-frost-refrigerator-400l-gtf402ssan.html",
+      "product title": "LG No Frost Refrigerator, 400 Liters, Silver - GTF402SSAN",
+      "price": "40,299 EGP",
+      "seller": ""
+   },
+   {
+      "date": "18-03-2024",
+      "time": "05:48:44 AM",
+      "url": "https://btech.com/en/zanussi-freestanding-digital-gas-cooker-5-burners-stainless-steel-90-cm-zcg94396x-132.html",
+      "product title": "Zanussi Gas Cooker, 5 Burners, Stainless Steel- ZCG94396X",
+      "price": "19,890 EGP",
+      "seller": ""
    }
 ]
