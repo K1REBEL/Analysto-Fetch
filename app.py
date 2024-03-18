@@ -66,11 +66,6 @@ def base():
 @app.route('/amazon', methods=['GET'])
 def amazon():
    try:
-
-      # chrome_options = webdriver.ChromeOptions()
-      # chrome_options.add_argument("--headless")
-      # chrome_options.add_argument("--remote-debugging-port=9222")
-      # s = webdriver.ChromeService(executable_path=binary_path)
       driver = webdriver.Chrome(service=s, options=chrome_options)
 
       # Initialize an empty list to store scraped data
@@ -255,82 +250,7 @@ def noon():
 
    except Exception as e:
       return jsonify({'error': str(e)}), 500
-
-# @app.route('/jumia', methods=['GET'])
-# def jumia():
-#     try:
-#         scraped_data = []  # Initialize an empty dictionary to store scraped data
-#         data = request.get_json()
-
-#         if not isinstance(data, list):
-#             return jsonify({'error': 'Invalid JSON format. Expecting an array of objects.'}), 400
-
-#         for item in data:
-#             query = item.get('query')
-#             url = f"https://www.jumia.com.eg/catalog/?q={query}"
-#             response = requests.get(url)
-#             soup = BeautifulSoup(response.content, "html.parser")
-
-#             # Extract all products from the page
-#             products = soup.select("article.prd")
-#             query_data = []  # Initialize an empty list to store data for this query
-#             final_data = []
-#             scraped_data = []
-
-#             for product in products:
-#                 price = product.find("div", class_="prc")
-#                 prod_url = product.select(("article.prd > a"))
-#                 href = prod_url[1]["href"]
-#                 href_data = "https://www.jumia.com.eg"+href
-#                 if price:
-#                     product_price_class = price.text.strip()
-#                     product_price_class = product_price_class.replace(",", "")
-#                     product_price_pattern = r'\d+\.\d+'
-#                     matches = re.findall(product_price_pattern, product_price_class)
-#                     if matches:
-#                         product_price = float(matches[0])
-#                     else:
-#                         product_price = None
-
-#                     # Append the scraped data for this product to the query data list
-#                     query_data.append({"price": product_price, "url": href_data})
-
-#             # Add the query data to the scraped_data dictionary
-#             # scraped_data[query] = query_data
-#               # Find the lowest price for this query
-#             lowest_price = None
-#             lowest_price_url = None
-#             if query_data:
-#                 lowest_price_data = min(query_data, key=lambda x: x["price"])
-#                 lowest_price = lowest_price_data["price"]
-#                 lowest_price_url = lowest_price_data["url"]
-
-#             # Add the lowest price for this query to the scraped_data dictionary`
-#             final_data.append({"price": lowest_price, "url": lowest_price_url})
-#             # scraped_data[query] = final_data  
-
-#             response2 = requests.get(lowest_price_url)
-#             soup1 = BeautifulSoup(response2.content, "html.parser")
-
-               
-#             product_title_span = soup1.select("div.-prl > h1.-pts")[0].text
-#             product_price_span = soup1.find("span", class_="-fs24").text.strip()
-#             product_seller_span = soup1.select("div.-pts > section.card > div.-pas > p.-pbs")[0].text
-#             date = datetime.date.today()
-#             formatted_date = date.strftime("%d-%m-%Y")
-#             time = datetime.datetime.now().time()
-#             formatted_time = time.strftime("%I:%M:%S %p")
-
-#          # Append the scraped data to the list
-#             scraped_data.append({"query": query, "time": formatted_time, "date": formatted_date, "url": url, "prod_title":product_title_span, "price":product_price_span, "seller":product_seller_span}) 
-
-#         with open("scraped_data.json", "w") as json_file:
-#             json.dump(scraped_data, json_file, indent=3)
-
-#         return jsonify({"message": "Jumia Data Scraped Successfully!"})
-
-#     except Exception as e:
-#         return jsonify({'error': str(e)}), 500
+   
    
 @app.route('/jumia', methods=['GET'])
 def jumia():
@@ -409,27 +329,47 @@ def jumia():
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/btech', methods=['POST'])
+@app.route('/btech', methods=['GET'])
 def btech():
    try:
+      scraped_data = []  # Initialize an empty list to store scraped data
       data = request.get_json()
 
       if not isinstance(data, list):
          return jsonify({'error': 'Invalid JSON format. Expecting an array of objects.'}), 400
-
-      platforms = [item.get('platform') for item in data]
+      
       skus = [item.get('sku') for item in data]
+      urls = [item.get('url') for item in data]
 
-      if None in platforms or None in skus:
+      if None in urls or None in skus:
          return jsonify({'error': 'Each object in the array must have "platform" and "sku" keys.'}), 400
 
-      if len(platforms) != len(skus):
+      if len(urls) != len(skus):
          return jsonify({'error': 'Number of platforms must match number of skus'}), 400
 
-      amazon_data = [{'platform': platform, 'sku': sku} for platform, sku in zip(platforms, skus)]
+      for url in urls:
+         response = requests.get(url)
+         soup = BeautifulSoup(response.content, "html.parser")
 
-      with open('amazon.json', 'w') as f:
-         json.dump(amazon_data, f)
+         prod_title = soup.find("span", class_="base").text.strip()
+         prod_price = soup.find("span", class_="price").text.strip()
+         prod_seller = soup.find("span", class_="seller-name").text.strip()
+
+         date = datetime.date.today()
+         formatted_date = date.strftime("%d-%m-%Y")
+         time = datetime.datetime.now().time()
+         formatted_time = time.strftime("%I:%M:%S %p")
+
+         # Append the scraped data to the list
+         scraped_data.append({"date": formatted_date, "time": formatted_time, "url": url, "product title": prod_title, "price": prod_price, "seller": prod_seller})
+         with open("scraped_data.json", "w") as json_file:
+            json.dump(scraped_data, json_file, indent=3)
+
+
+      btech_data = [{'platform': "B.TECH", 'sku': sku, 'URL': url} for url, sku in zip(urls, skus)]
+
+      with open('btech.json', 'w') as f:
+         json.dump(btech_data, f)
 
       return jsonify({'message': 'Data Received!'})
 
