@@ -146,13 +146,13 @@ def noon():
          driver.get(url)  # Open the URL in the browser
          html_content = driver.page_source  # Get the HTML content
          # html2 = r"{html_content}"
-         html = html_content+"\\".replace(r"\\", "")
+         # html = html_content+"\\".replace(r"\\", "")
 
 
          # Parse the HTML content using Beautiful Soup
          soup = BeautifulSoup(html_content, "html.parser")
-         with open("noon.html", "w") as a:
-          json.dump(html, a)
+         # with open("noon.html", "w") as a:
+         #  json.dump(html, a)
 
          # Extract relevant information from the page (customize this part)
          title = soup.find("title").get_text() if soup.find("title") else None
@@ -191,145 +191,7 @@ def noon():
    except Exception as e:
       return jsonify({'error': str(e)}), 500
 
-   #  try:
-   #      chrome_options = webdriver.ChromeOptions()
-   #      chrome_options.add_argument("--headless")
-   #      chrome_options.add_argument("--remote-debugging-port=9222")
-   #      s = webdriver.ChromeService(executable_path=binary_path)
-   #      driver = webdriver.Chrome(service=s, options=chrome_options)
 
-   #      # Initialize an empty list to store scraped data
-   #      scraped_data = []
-   #      data = request.get_json()
-
-   #      if not isinstance(data, list):
-   #          return jsonify({'error': 'Invalid JSON format. Expecting an array of objects.'}), 400
-
-   #      asins = [item.get('asin') for item in data]
-   #      urls = [item.get('url') for item in data]
-
-   #      if None in asins or None in urls:
-   #          return jsonify({'error': 'Each object in the array must have "asin" and "url" keys.'}), 400
-
-   #      if len(asins) != len(urls):
-   #          return jsonify({'error': 'Number of ASINs must match the number of URLs'}), 400
-
-   #      for url in urls:
-   #          driver.get(url)  # Open the URL in the browser
-
-   #          html_content = driver.page_source  # Get the HTML content
-
-   #          # Parse the HTML content using Beautiful Soup
-   #          soup = BeautifulSoup(html_content, "html.parser")
-
-   #          # Extract relevant information from the page (customize this part)
-   #          title = soup.find("title")
-   #          print(title)
-   #          product_title_span = soup.find("h1", class_="fIMVLF")
-   #          product_price_span = soup.find("div", class_="priceNow")
-
-   #          if product_price_span:
-   #              product_price_span = product_price_span.text.strip()
-   #              # Define a regex pattern to extract the numeric part of the price
-   #              product_price_pattern = r'\d+\.\d+'
-   #              matches = re.findall(product_price_pattern, product_price_span)
-   #              if matches:
-   #                  product_price = float(matches[0])
-   #              else:
-   #                  product_price = None
-   #          else:
-   #              product_price = None
-
-   #          product_seller_span = soup.find("span", class_="allOffers")
-   #          date = datetime.date.today()
-   #          formatted_date = date.strftime("%d-%m-%Y")
-   #          time = datetime.datetime.now().time()
-   #          formatted_time = time.strftime("%I:%M:%S %p")
-
-   #          # Append the scraped data to the list
-   #          scraped_data.append({"time": formatted_time, "date": formatted_date, "title": title, "url": url, "product_title": product_title_span, "price": product_price, "seller": product_seller_span})
-   #          with open("scraped_data.json", "w") as json_file:
-   #              json.dump(scraped_data, json_file, indent=3)
-   #      # Save the scraped data to a JSON file
-
-   #      driver.quit()  # Close the browser
-   #      scrape_data = [{'asin': asin, 'url': url} for asin, url in zip(asins, urls)]
-
-   #      with open('noon.json', 'w') as f:
-   #          json.dump(scrape_data, f, indent=3)
-
-   #      return jsonify({"message": "Noon Data Scraped Successfully!"})
-
-   #  except Exception as e:
-   #      return jsonify({'error': str(e)}), 500
-   # try:
-
-   #    # chrome_options = webdriver.ChromeOptions()
-   #    # chrome_options.add_argument("--headless")
-   #    # chrome_options.add_argument("--remote-debugging-port=9222")
-   #    # s = webdriver.ChromeService(executable_path=binary_path)
-   #    # driver = webdriver.Chrome(service=s, options=chrome_options)
-
-   #    # Initialize an empty list to store scraped data
-   #    scraped_data = []
-   #    data = request.get_json()
-
-   #    if not isinstance(data, list):
-   #       return jsonify({'error': 'Invalid JSON format. Expecting an array of objects.'}), 400
-
-   #    asins = [item.get('asin') for item in data]
-   #    urls = [item.get('url') for item in data]
-
-   #    if None in asins or None in urls:
-   #       return jsonify({'error': 'Each object in the array must have "asin" and "url" keys.'}), 400
-
-   #    if len(asins) != len(urls):
-   #       return jsonify({'error': 'Number of ASINs must match the number of URLs'}), 400
-      
-   #    # print(urls)
-   #    # for url in urls:
-   #    # driver.get(urls)  # Open the URL in the browser
-   #    response = requests.get(urls)
-   #    print(urls)
-   #    # html_content = driver.page_source  # Get the HTML content
-      
-   #    # Parse the HTML content using Beautiful Soup
-   #    soup = BeautifulSoup(response.content, "html.parser")
-   #    with open('noon.html', 'w') as f:
-   #       json.dump(response.content, f)
-
-
-   #    # Extract relevant information from the page (customize this part)
-   #    title = soup.find("title")
-   #    product_title_span = soup.select("div.QNRMo > h1")
-   #    prod_title = product_title_span
-   #    product_price_span = soup.find("span", class_="priceNow")
-   #    product_seller_span = soup.find("span", class_="allOffers")
-   #    date = datetime.date.today()
-   #    formatted_date = date.strftime("%d-%m-%Y")
-   #    time = datetime.datetime.now().time()
-   #    formatted_time = time.strftime("%I:%M:%S %p")
-
-
-   #    # Append the scraped data to the list
-   #    scraped_data.append({"time": formatted_time, "date": formatted_date, "url": url, "title":title, "prod_title": prod_title, "price": product_price_span, "seller": product_seller_span})
-   #    with open("scraped_data.json", "w") as json_file:
-   #       json.dump(scraped_data, json_file, indent=3)
-   #    # Save the scraped data to a JSON file
-      
-         
-   #    # driver.quit()  # Close the browser
-   #    scrape_data = [{'asin': asin, 'url': url} for asin, url in zip(asins, urls)]
-
-   #    with open('noon.json', 'w') as f:
-   #       json.dump(scrape_data, f, indent=3)
-
-   #    return jsonify({"message": "Noon Data Scraped Successfully!"})
-
-   # except Exception as e:
-   #    return jsonify({'error': str(e)}), 500
-   
-   
 @app.route('/jumia', methods=['GET'])
 def jumia():
     try:
