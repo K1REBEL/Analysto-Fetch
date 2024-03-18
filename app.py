@@ -9,7 +9,7 @@ import schedule
 import threading
 import subprocess
 import concurrent.futures
-from check_proxies import prepare
+# from check_proxies import prepare
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from chromedriver_py import binary_path
@@ -533,6 +533,8 @@ def scrape():
 
 @app.route('/scrape3', methods=['GET'])
 def scrape3():
+   scraped_data = []
+   data = request.get_json()
    global q
    while not q.empty():
       proxy = q.get()
@@ -543,11 +545,10 @@ def scrape3():
          #                                "https": proxy},
          #                   timeout=5)
          # elapsed_time = time.time() - start_time
-                  driver = webdriver.Chrome(service=s, options=chrome_options)
+         driver = webdriver.Chrome(service=s, options=chrome_options)
 
          # Initialize an empty list to store scraped data
-         scraped_data = []
-         data = request.get_json()
+
 
          if not isinstance(data, list):
             return jsonify({'error': 'Invalid JSON format. Expecting an array of objects.'}), 400
@@ -594,11 +595,11 @@ def scrape3():
          return jsonify({"message": "Amazon Data Scraped Successfully!"})
       except:
          continue
-   try:
+   # try:
 
 
-   except Exception as e:
-      return jsonify({'error': str(e)}), 500
+   # except Exception as e:
+   #    return jsonify({'error': str(e)}), 500
 
 
 @app.route('/test', methods=['GET'])
