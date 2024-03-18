@@ -6,21 +6,22 @@ import requests
 q = queue.Queue()
 valid_proxies = []
 
-api_url = "https://api.proxyscrape.com/v3/free-proxy-list/get?request=displayproxies&timeout=500&proxy_format=ipport&format=text"
-response = requests.get(api_url)
-proxy_list = response.text.split("\n")
+def fetch_proxies():
+   api_url = "https://api.proxyscrape.com/v3/free-proxy-list/get?request=displayproxies&timeout=500&proxy_format=ipport&format=text"
+   response = requests.get(api_url)
+   proxy_list = response.text.split("\n")
 
-# Write fetched proxies to a file
-with open("proxy_list.txt", "w") as proxy_file:
-    for proxy in proxy_list:
-        proxy_file.write(proxy)
+   # Write fetched proxies to a file
+   with open("proxy_list.txt", "w") as proxy_file:
+      for proxy in proxy_list:
+         proxy_file.write(proxy)
 
-print(f"{len(proxy_list)} proxies saved to 'proxy_list.txt'.")
+   print(f"{len(proxy_list)} proxies saved to 'proxy_list.txt'.")
 
-with open("proxy_list.txt", "r") as f:
-   proxies = f.read().split("\n")
-   for p in proxies:
-      q.put(p)
+   with open("proxy_list.txt", "r") as f:
+      proxies = f.read().split("\n")
+      for p in proxies:
+         q.put(p)
 
 def check_proxies():
    global q
@@ -40,6 +41,7 @@ def check_proxies():
          valid_proxies.append(proxy)
 
 
+fetch_proxies()
 for _ in range(10):
    threading.Thread(target=check_proxies).start()
 
