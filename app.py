@@ -225,18 +225,21 @@ def noon():
 
          # Extract relevant information from the page (customize this part)
          title = soup.find("title")
-         product_title_span = soup.find("h1", class_="fIMVLF")
+         product_title_span = soup.select("div.QNRMo > h1")
+         prod_title = product_title_span
          product_price_span = soup.find("span", class_="priceNow")
          product_seller_span = soup.find("span", class_="allOffers")
          date = datetime.date.today()
          formatted_date = date.strftime("%d-%m-%Y")
          time = datetime.datetime.now().time()
          formatted_time = time.strftime("%I:%M:%S %p")
+         with open('noon.json', 'w') as f:
+            json.dump(prod_title, f, indent=3)
 
          # Append the scraped data to the list
-         scraped_data.append({"time": formatted_time, "date": formatted_date, "url": url, "title":title, "prod_title": product_title_span, "price": product_price_span, "seller": product_seller_span})
-         with open("scraped_data.json", "w") as json_file:
-          json.dump(scraped_data, json_file, indent=3)
+         scraped_data.append({"time": formatted_time, "date": formatted_date, "url": url, "title":title, "prod_title": prod_title, "price": product_price_span, "seller": product_seller_span})
+         # with open("scraped_data.json", "w") as json_file:
+         #  json.dump(scraped_data, json_file, indent=3)
       # Save the scraped data to a JSON file
       
          
