@@ -304,6 +304,8 @@ def jumia():
 @app.route('/btech', methods=['GET'])
 def btech():
    try:
+      driver = webdriver.Chrome(service=s, options=chrome_options)
+
       scraped_data = []  # Initialize an empty list to store scraped data
       data = request.get_json()
 
@@ -320,12 +322,20 @@ def btech():
          return jsonify({'error': 'Number of platforms must match number of skus'}), 400
 
       for url in urls:
-         response = requests.get(url)
-         soup = BeautifulSoup(response.content, "html.parser")
+         driver.get(url)
+         html_content = driver.page_source
+         # response = requests.get(url)
+
+         soup = BeautifulSoup(html_content, "html.parser")
+         with open('btech.html', 'w') as f:
+            json.dump(html_content, f)  
+            # f.write(response.content.decode('utf-8'))  
 
          prod_title = soup.find("span", class_="base").text.strip()
          # prod_price = soup.find("span", class_="price").text.strip()
-         prod_price = soup.select_one("span.price-wrapper > span.price").text.strip() if soup.select_one("span.price-wrapper > span.price") else None
+         prod_price = soup.find("span", {"id": lambda x: x and "product-price" in x})["data-price-amount"]
+
+         # prod_price = soup.select_one("span.price-wrapper > span.price").text.strip() if soup.select_one("span.price-wrapper > span.price") else None
          # prod_price = soup.select_one("span.price-wrapper > span.price").get_text() if soup.select_one("span.price-wrapper > span.price") else None
          prod_seller = soup.find("span", class_="seller-name").text.strip()
          # prod_seller = soup.find("span", class_="normal-text").text.strip()
