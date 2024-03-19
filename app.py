@@ -327,18 +327,13 @@ def btech():
          # response = requests.get(url)
 
          soup = BeautifulSoup(html_content, "html.parser")
-         with open('btech.html', 'w') as f:
-            json.dump(html_content, f)  
-            # f.write(response.content.decode('utf-8'))  
+         with open("btech.html", "w") as f:
+            f.write(html_content) 
 
          prod_title = soup.find("span", class_="base").text.strip()
-         # prod_price = soup.find("span", class_="price").text.strip()
          prod_price = soup.find("span", {"id": lambda x: x and "product-price" in x})["data-price-amount"]
-
-         # prod_price = soup.select_one("span.price-wrapper > span.price").text.strip() if soup.select_one("span.price-wrapper > span.price") else None
-         # prod_price = soup.select_one("span.price-wrapper > span.price").get_text() if soup.select_one("span.price-wrapper > span.price") else None
-         prod_seller = soup.find("span", class_="seller-name").text.strip()
-         # prod_seller = soup.find("span", class_="normal-text").text.strip()
+         # prod_seller = soup.find("span", class_="seller-name").text.strip()
+         prod_seller = soup.select_one("div.seller-custom-inner").get_text()
 
          date = datetime.date.today()
          formatted_date = date.strftime("%d-%m-%Y")
@@ -349,6 +344,9 @@ def btech():
          scraped_data.append({"date": formatted_date, "time": formatted_time, "url": url, "product title": prod_title, "price": prod_price, "seller": prod_seller})
          with open("scraped_data.json", "w") as json_file:
             json.dump(scraped_data, json_file, indent=3)
+
+         driver.quit()
+
 
 
       btech_data = [{'platform': "B.TECH", 'sku': sku, 'URL': url} for url, sku in zip(urls, skus)]
