@@ -5,7 +5,7 @@ import time
 import queue
 import requests
 import datetime
-import schedule
+# import schedule
 import threading
 import subprocess
 import concurrent.futures
@@ -325,8 +325,9 @@ def btech():
 
          prod_title = soup.find("span", class_="base").text.strip()
          # prod_price = soup.find("span", class_="price").text.strip()
-         prod_price = soup.find("span", class_="price").text.strip()
-         prod_seller = soup.find("a", class_="gtm-open-seller-page").text.strip()
+         prod_price = soup.select_one("span.price-wrapper > span.price").text.strip() if soup.select_one("span.price-wrapper > span.price") else None
+         # prod_price = soup.select_one("span.price-wrapper > span.price").get_text() if soup.select_one("span.price-wrapper > span.price") else None
+         prod_seller = soup.find("span", class_="seller-name").text.strip()
          # prod_seller = soup.find("span", class_="normal-text").text.strip()
 
          date = datetime.date.today()
