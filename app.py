@@ -97,14 +97,14 @@ def base():
    except Exception as e:
       return jsonify({'error': str(e)}), 500
 
-@app.route('/amazon', methods=['GET'])
+@app.route('/amazon', methods=['POST'])
 def amazon():
    try:
       driver = webdriver.Chrome(service=s, options=chrome_options)
 
       # Initialize an empty list to store scraped data
       scraped_data = []
-      data = request.get_json()
+      data = request.json
 
       if not isinstance(data, list):
          return jsonify({'error': 'Invalid JSON format. Expecting an array of objects.'}), 400
@@ -141,26 +141,83 @@ def amazon():
           json.dump(scraped_data, json_file, indent=3)
       # Save the scraped data to a JSON file
       
-         
+      
       driver.quit()  # Close the browser
-      scrape_data = [{'asin': asin, 'url': url} for asin, url in zip(asins, urls)]
+      # scrape_data = [{'asin': asin, 'url': url} for asin, url in zip(asins, urls)]
 
-      with open('amazon.json', 'w') as f:
-         json.dump(scrape_data, f, indent=3)
+      return jsonify({"scraped_data": scraped_data})
 
-      return jsonify({"message": "Amazon Data Scraped Successfully!"})
+
+      # with open('amazon.json', 'w') as f:
+      #    json.dump(scrape_data, f, indent=3)
+
+      # return jsonify({"message": "Amazon Data Scraped Successfully!"})
 
    except Exception as e:
       return jsonify({'error': str(e)}), 500
+# import requests
 
-@app.route('/noon', methods=['GET'])
+# @app.route('/amazon', methods=['POST'])
+# def amazon():
+#     try:
+#         driver = webdriver.Chrome(service=s, options=chrome_options)
+
+#         # Initialize an empty list to store scraped data
+#         scraped_data = []
+#         data = request.json
+
+#         if not isinstance(data, list):
+#             return jsonify({'error': 'Invalid JSON format. Expecting an array of objects.'}), 400
+
+#         asins = [item.get('asin') for item in data]
+#         urls = [item.get('url') for item in data]
+
+#         if None in asins or None in urls:
+#             return jsonify({'error': 'Each object in the array must have "asin" and "url" keys.'}), 400
+
+#         if len(asins) != len(urls):
+#             return jsonify({'error': 'Number of ASINs must match the number of URLs'}), 400
+
+#         for url in urls:
+#             driver.get(url)  # Open the URL in the browser
+#             html_content = driver.page_source  # Get the HTML content
+
+#             # Parse the HTML content using Beautiful Soup
+#             soup = BeautifulSoup(html_content, "html.parser")
+
+#             # Extract relevant information from the page (customize this part)
+#             # title = soup.find("title").text.strip()
+#             product_title_span = soup.find("span", id="productTitle").text.strip()
+#             product_price_span = soup.find("span", class_="a-price-whole").text.strip()
+#             product_seller_span = soup.find("span", class_="offer-display-feature-text-message").text.strip()
+#             date = datetime.date.today()
+#             formatted_date = date.strftime("%d-%m-%Y")
+#             time = datetime.datetime.now().time()
+#             formatted_time = time.strftime("%I:%M:%S %p")
+
+#             # Append the scraped data to the list
+#             scraped_data.append({"time": formatted_time, "date": formatted_date, "url": url, "prod_title": product_title_span, "price": product_price_span, "seller": product_seller_span})
+
+#         # Close the browser
+#         driver.quit()
+
+#         # Save the scraped data to a JSON file
+#         with open("scraped_data.json", "w") as json_file:
+#             json.dump(scraped_data, json_file, indent=3)
+
+#         # Send the scraped data to the Laravel backend
+
+#     except Exception as e:
+#         return jsonify({'error': str(e)}), 500
+
+@app.route('/noon', methods=['POST'])
 def noon():
    try:
       driver = webdriver.Chrome(service=s, options=chrome_options)
 
       # Initialize an empty list to store scraped data
       scraped_data = []
-      data = request.get_json()
+      data = request.json
 
       if not isinstance(data, list):
          return jsonify({'error': 'Invalid JSON format. Expecting an array of objects.'}), 400
@@ -224,11 +281,11 @@ def noon():
       return jsonify({'error': str(e)}), 500
 
 
-@app.route('/jumia', methods=['GET'])
+@app.route('/jumia', methods=['POST'])
 def jumia():
     try:
         scraped_data = []  # Initialize an empty list to store scraped data
-        data = request.get_json()
+        data = request.json
 
         if not isinstance(data, list):
             return jsonify({'error': 'Invalid JSON format. Expecting an array of objects.'}), 400
@@ -301,13 +358,13 @@ def jumia():
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/btech', methods=['GET'])
+@app.route('/btech', methods=['POST'])
 def btech():
    try:
       driver = webdriver.Chrome(service=s, options=chrome_options)
 
       scraped_data = []  # Initialize an empty list to store scraped data
-      data = request.get_json()
+      data = request.json
 
       if not isinstance(data, list):
          return jsonify({'error': 'Invalid JSON format. Expecting an array of objects.'}), 400
