@@ -143,15 +143,17 @@ def amazon():
       
       
       driver.quit()  # Close the browser
-      # scrape_data = [{'asin': asin, 'url': url} for asin, url in zip(asins, urls)]
+      scrape_data = [{'asin': asin, 'url': url} for asin, url in zip(asins, urls)]
 
-      return jsonify({"scraped_data": scraped_data})
+      # return jsonify({"scraped_data": scraped_data})
 
 
-      # with open('amazon.json', 'w') as f:
-      #    json.dump(scrape_data, f, indent=3)
+      with open('amazon.json', 'w') as f:
+         json.dump(scrape_data, f, indent=3)
 
       # return jsonify({"message": "Amazon Data Scraped Successfully!"})
+      return jsonify({"scraped_data": scraped_data})
+
 
    except Exception as e:
       return jsonify({'error': str(e)}), 500
@@ -270,13 +272,15 @@ def noon():
       
          
       driver.quit()  # Close the browser
+      # return jsonify({"scraped_data": scraped_data})
+
       scrape_data = [{'asin': asin, 'url': url} for asin, url in zip(asins, urls)]
 
       with open('noon.json', 'w') as f:
          json.dump(scrape_data, f, indent=3)
 
-      return jsonify({"message": "Noon Data Scraped Successfully!"})
-
+      # return jsonify({"message": "Noon Data Scraped Successfully!"})
+      return jsonify({"scraped_data": scraped_data})
    except Exception as e:
       return jsonify({'error': str(e)}), 500
 
@@ -352,7 +356,9 @@ def jumia():
         with open("scraped_data.json", "w") as json_file:
             json.dump(scraped_data, json_file, indent=3)
 
-        return jsonify({"message": "Jumia Data Scraped Successfully!"})
+      #   return jsonify({"message": "Jumia Data Scraped Successfully!"})
+        return jsonify({"scraped_data": scraped_data})
+
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -404,13 +410,13 @@ def btech():
 
          driver.quit()
 
-
-
       btech_data = [{'platform': "B.TECH", 'sku': sku, 'URL': url} for url, sku in zip(urls, skus)]
       with open('btech.json', 'w') as f:
          json.dump(btech_data, f)
 
-      return jsonify({'message': 'Data Received!'})
+      # return jsonify({'message': 'Data Received!'})
+      return jsonify({"scraped_data": scraped_data})
+
 
    except Exception as e:
       return jsonify({'error': str(e)}), 500
