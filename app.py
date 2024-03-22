@@ -185,7 +185,7 @@ def amazon():
                   "seller": seller
                })
                
-               with open("scraped_data.json", "w") as json_file:
+               with open("scraped_data.json", "w", encoding='utf-8') as json_file:
                   json.dump(scraped_data, json_file, indent=3)
             except Exception as e:
                print(f'Got exception while scraping the data {repr(e)}')
