@@ -3,13 +3,18 @@ import re
 import json
 import time
 import queue
+import redis
+import random
 import requests
 import datetime
 import schedule
 import threading
 import subprocess
 import concurrent.futures
+from scrapingant_client import ScrapingAntClient, ScrapingantClientException
 # from check_proxies import prepare
+# import check_proxies
+from celery import Celery
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from chromedriver_py import binary_path
@@ -21,45 +26,25 @@ from selenium.webdriver.support import expected_conditions as EC
 
 app = Flask(__name__)
 
+# Configure Celery
+# 'redis://localhost:6379/0'
+
+# app.config['CELERY_BROKER_URL'] = 'redis-13354.c11.us-east-1-2.ec2.cloud.redislabs.com:13354'  # Update with your Redis server URL
+# app.config['CELERY_RESULT_BACKEND'] = 'redis-13354.c11.us-east-1-2.ec2.cloud.redislabs.com:13354'  # Update with your Redis server URL
+# celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
+# celery.conf.update(app.config)
+
 chrome_options = webdriver.ChromeOptions()
-chrome_options.add_argument("--headless")
+# chrome_options.add_argument("--headless")
 chrome_options.add_argument("--remote-debugging-port=9222")
 chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36")  # Set user-agent header
 s = webdriver.ChromeService(executable_path=binary_path)
 q = queue.Queue()
 
-def get_proxies():
-   with open("valid_proxies.txt", "r") as f:
-      proxies = f.read().split("\n")
-      for p in proxies:
-         q.put(p)
-
-# def run_other_script():
-#     subprocess.run(["python", "check_proxies.py"])
-
-# def run_check_proxies():
-#     # Option 1: Run the check_proxies.py script
-#    #  import subprocess
-#    #  subprocess.run(["python", "check_proxies.py"])
-
-#     # Option 2: Run the prepare() function from check_proxies.py
-#     # from check_proxies import prepare
-#     prepare()
-
-# def schedule_check_proxies():
-#     schedule.every(2).minutes.do(run_check_proxies)
-
-#     while True:
-#         schedule.run_pending()
-#         time.sleep(60)  # Sleep for 1 minute before checking for scheduled jobs again
-
-# # Uncomment the line below to start scheduling the check_proxies job
-# schedule_check_proxies()
 
 def split_array(arr):
       # Calculate the size of each subarray
    subarray_size = len(arr) // 10
-
       # Split the array into 5 subarrays
    subarrays = [arr[i * subarray_size: (i + 1) * subarray_size] for i in range(10)]
 
@@ -531,77 +516,349 @@ def scrape():
    except Exception as e:
       return jsonify({'error': str(e)}), 500
    
+valid_proxies = []
+
+def get_proxies():
+   with open("valid_proxies.txt", "r") as f:
+      proxies = f.read().split("\n")
+      for proxy in proxies:
+         valid_proxies.append(proxy)
+
+
+# def get_proxies():
+#    with open("valid_proxies.txt", "r") as f:
+#       proxies = f.read().split("\n")
+#       for p in proxies:
+#          q.put(p)
 
 @app.route('/scrape3', methods=['GET'])
 def scrape3():
+
+   get_proxies()
    scraped_data = []
    data = request.get_json()
-   global q
-   while not q.empty():
-      proxy = q.get()
-      try:
-         # start_time = time.time()
-         # res = requests.get("http://ipinfo.io/json",
-         #                    proxies = { "http": proxy,
-         #                                "https": proxy},
-         #                   timeout=5)
-         # elapsed_time = time.time() - start_time
-         driver = webdriver.Chrome(service=s, options=chrome_options)
+   if not isinstance(data, list):
+      return jsonify({'error': 'Invalid JSON format. Expecting an array of objects.'}), 400
 
-         # Initialize an empty list to store scraped data
+   asins = [item.get('sku') for item in data]
+   urls = [item.get('url') for item in data]
 
+   if None in asins or None in urls:
+      return jsonify({'error': 'Each object in the array must have "asin" and "url" keys.'}), 400
 
-         if not isinstance(data, list):
-            return jsonify({'error': 'Invalid JSON format. Expecting an array of objects.'}), 400
+   if len(urls) > 100:
+      return jsonify({'error': 'Too Many Products, Max is 100.'}), 400
 
-         asins = [item.get('asin') for item in data]
-         urls = [item.get('url') for item in data]
+   if len(asins) != len(urls):
+      return jsonify({'error': 'Number of ASINs must match the number of URLs'}), 400
 
-         if None in asins or None in urls:
-            return jsonify({'error': 'Each object in the array must have "asin" and "url" keys.'}), 400
+   # proxy_index = random.randint(0, len(valid_proxies)-1)
+   proxy = random.choice(valid_proxies)
+   while proxy == "":
+      proxy = random.choice(valid_proxies)
 
-         if len(asins) != len(urls):
-            return jsonify({'error': 'Number of ASINs must match the number of URLs'}), 400
-         
-         for url in urls:
-            driver.get(url)  # Open the URL in the browser
-            html_content = driver.page_source  # Get the HTML content
+   # global q
+   # while not q.empty():
+   #    proxy = q.get()
+   try:
+      print(proxy)
+      chrome_options.add_argument(f"--proxy-server=https://{proxy}")
+      driver = webdriver.Chrome(service=s, options=chrome_options)
+
+      for url in urls:
+         driver.get(url)  # Open the URL in the browser
+         html_content = driver.page_source  # Get the HTML content
 
             # Parse the HTML content using Beautiful Soup
-            soup = BeautifulSoup(html_content, "html.parser")
+         soup = BeautifulSoup(html_content, "html.parser")
 
-            # Extract relevant information from the page (customize this part)
-            # title = soup.find("title").text.strip()
-            product_title_span = soup.find("span", id="productTitle").text.strip()
-            product_price_span = soup.find("span", class_="a-price-whole").text.strip()
-            product_seller_span = soup.find("span", class_="offer-display-feature-text-message").text.strip()
-            date = datetime.date.today()
-            formatted_date = date.strftime("%d-%m-%Y")
-            time = datetime.datetime.now().time()
-            formatted_time = time.strftime("%I:%M:%S %p")
+         prod_title = soup.find("span", class_="base").text.strip()
+         # prod_price = soup.find("span", class_="price").text.strip()
+         prod_price = soup.find("span", class_="price").text.strip()
+         prod_seller = soup.find("a", class_="gtm-open-seller-page").text.strip()
+         # prod_seller = soup.find("span", class_="normal-text").text.strip()
 
-            # Append the scraped data to the list
-            scraped_data.append({"time": formatted_time, "date": formatted_date, "url": url, "prod_title": product_title_span, "price": product_price_span, "seller": product_seller_span})
-            with open("scraped_data.json", "w") as json_file:
-               json.dump(scraped_data, json_file, indent=3)
+         date = datetime.date.today()
+         formatted_date = date.strftime("%d-%m-%Y")
+         time = datetime.datetime.now().time()
+         formatted_time = time.strftime("%I:%M:%S %p")
+
+         # Append the scraped data to the list
+         scraped_data.append({"date": formatted_date, "time": formatted_time, "from ip": proxy, "url": url, "product title": prod_title, "price": prod_price, "seller": prod_seller})
+         with open("scraped_data.json", "w") as json_file:
+            json.dump(scraped_data, json_file, indent=3)
          # Save the scraped data to a JSON file
          
             
-         driver.quit()  # Close the browser
-         scrape_data = [{'asin': asin, 'url': url} for asin, url in zip(asins, urls)]
+      driver.quit()  # Close the browser
+      # scrape_data = [{'asin': asin, 'url': url} for asin, url in zip(asins, urls)]
 
-         with open('amazon.json', 'w') as f:
-            json.dump(scrape_data, f, indent=3)
+      # with open('amazon.json', 'w') as f:
+      #    json.dump(scrape_data, f, indent=3)
 
-         return jsonify({"message": "Amazon Data Scraped Successfully!"})
-      except:
-         continue
-   # try:
+      return jsonify({"message": "Amazon Data Scraped Successfully!"})
+   except Exception as e:
+      return jsonify({'error': str(e)}), 500
+      # continue
+
+def get_scrappers():
+   with open("scrappers.json", 'r') as json_file:
+      data = json.load(json_file)
+      return data
+
+@app.route('/scrapeAmazon', methods=['GET'])
+def scrapeAmazon():
+
+   scraped_data = []
+   data = request.get_json()
+   if not isinstance(data, list):
+      return jsonify({'error': 'Invalid JSON format. Expecting an array of objects.'}), 400
+
+   asins = [item.get('asin') for item in data]
+   urls = [item.get('url') for item in data]
+
+   if None in asins or None in urls:
+      return jsonify({'error': 'Each object in the array must have "asin" and "url" keys.'}), 400
+
+   if len(urls) > 100:
+      return jsonify({'error': 'Too Many Products, Max is 100.'}), 400
+
+   if len(asins) != len(urls):
+      return jsonify({'error': 'Number of ASINs must match the number of URLs'}), 400
+   
+   def scrape(url):
+         
+         scrappers = get_scrappers()
+         scrapper = random.choice(scrappers)
+         # Find the index of the original scrapper
+         original_index = scrappers.index(scrapper)
+
+         if scrapper["credits"] >= scrapper["deductible"]:
+            if scrapper["service"] == "scrapingant":
+               agent = "scrapingAnt"
+               print(scrapper)
+               try:
+                  client = ScrapingAntClient(token=f"{scrapper['api_key']}")
+                  result = client.general_request(
+                     url,
+                     browser=True,
+                     return_page_source=True
+                     # ,block_resource='image'
+                  )
+                  scrapper["credits"] -= scrapper["deductible"]
+                  scrappers[original_index] = scrapper
+                  html_content = result.content  # Get the HTML content
+               except Exception as e:
+                  print(f'Got exception while parsing data {repr(e)}')
+                  return scrape(url)
+
+               # with open("scrappers.json", "w") as json_file:
+               #    json.dump(scrappers, json_file, indent=3)
+
+               # return(result.content)
+
+            elif scrapper["service"] == "scrapingdog":
+               print(scrapper)
+               agent = "scrapingdog"
+               params = {
+                  "api_key": f"{scrapper['api_key']}",
+                  "url": url,
+                  "dynamic": "true",
+               }
+               try:
+
+                  response = requests.get(f"{scrapper['service_url']}", params=params)
+                  scrapper["credits"] -= scrapper["deductible"]
+                  scrappers[original_index] = scrapper
+                  
+               # with open("scrappers.json", "w") as json_file:
+               #    json.dump(scrappers, json_file, indent=3)
+
+                  html_content = response.text  # Get the HTML content
+               except Exception as e:
+                  print(f'Got exception while parsing data {repr(e)}')
+                  return scrape(url)
+               # return(response.text)
+            with open("scrappers.json", "w") as json_file:
+               json.dump(scrappers, json_file, indent=3)
+
+            try:
+               # Parse the HTML content using Beautiful Soup
+               soup = BeautifulSoup(html_content, "html.parser")
+
+               product_title_span = soup.find("span", id="productTitle").text.strip()
+               product_price_span = soup.find("span", class_="a-price-whole").text.strip()
+               # product_seller_span = soup.find("span", class_="offer-display-feature-text-message").text.strip()
+               product_seller_span = soup.find("a", id="sellerProfileTriggerId")
+               if(product_seller_span):
+                  seller = product_seller_span.text.strip()
+               else:
+                  seller = soup.select_one("div.offer-display-feature-text > span.offer-display-feature-text-message").get_text()
+
+               date = datetime.date.today()
+               formatted_date = date.strftime("%d-%m-%Y")
+               time = datetime.datetime.now().time()
+               formatted_time = time.strftime("%I:%M:%S %p")
+               if product_price_span:
+                        #   product_price_class = product_price_span
+                        product_price_span = product_price_span.replace(",", "")
+                        # print(product_price_span)
+                        product_price_pattern = r'\d+.\d+'
+                        matches = re.findall(product_price_pattern, product_price_span)
+                        if matches:
+                              product_price = float(matches[0])
+                        else:
+                              product_price = None
+
+               # Append the scraped data to the list
+               scraped_data.append(
+                  {
+                     "agent": agent, 
+                     "time": formatted_time, 
+                     "date": formatted_date, 
+                     "url": url, 
+                     "prod_title": product_title_span, 
+                     "price": product_price, 
+                     "seller": seller
+                  })
+               
+               with open("scraped_data.json", "w") as json_file:
+                  json.dump(scraped_data, json_file, indent=3)
+            except Exception as e:
+               print(f'Got exception while scraping the data {repr(e)}')
+               return scrape(url)
+            # return jsonify(scrapper)
+         
+         else:
+            # If credits are insufficient, repick another scrapper
+            return scrape(url)  # Recursive call to repick
+            # continue
+   for url in urls:
+      scrape(url)
+
+   return jsonify(scraped_data)
+   
+   
+         
+
+   # print(scrapper)
+
+      
+   # threads = []
+   # # for _ in range(10):
+   # for url in urls:
+   #    t = threading.Thread(target=scrape, args=[urls])
+   #    t.start()
+   #    threads.append(t)
+   # # check_proxies()
+   # for t in threads:
+   #    t.join()
+   # with open("scraped_data.json", "w") as json_file:
+   #    json.dump(scraped_data, json_file, indent=3)
+   # max_retries = 5
+   # with concurrent.futures.ThreadPoolExecutor() as executor:
+   #    executor.map(scrape, urls)
+        # Submit each URL to the executor
+      #    futures = [executor.submit(scrape, url) for url in urls]
+
+      #   # Retrieve results from completed futures
+      #    for future in concurrent.futures.as_completed(futures):
+      #       retries = 0
+      #       while retries < max_retries:
+      #             try:
+      #                result = future.result()
+      #                scraped_data.append(result)
+      #                break  # Successfully scraped, break out of the retry loop
+      #             except Exception as e:
+      #                print(f"Scraping error: {e}")
+      #                retries += 1
+      #                print(f"Retrying ({retries}/{max_retries})...")
+
+      #       if retries == max_retries:
+      #             print(f"Max retries reached. Unable to scrape data for URL")
 
 
-   # except Exception as e:
-   #    return jsonify({'error': str(e)}), 500
+# @app.route('/scrapeAmazon', methods=['GET'])
+# def scrapeAmazon():
 
+#    scraped_data = []
+#    data = request.get_json()
+#    if not isinstance(data, list):
+#       return jsonify({'error': 'Invalid JSON format. Expecting an array of objects.'}), 400
+
+#    asins = [item.get('asin') for item in data]
+#    urls = [item.get('url') for item in data]
+
+#    if None in asins or None in urls:
+#       return jsonify({'error': 'Each object in the array must have "asin" and "url" keys.'}), 400
+
+#    if len(urls) > 100:
+#       return jsonify({'error': 'Too Many Products, Max is 100.'}), 400
+
+#    if len(asins) != len(urls):
+#       return jsonify({'error': 'Number of ASINs must match the number of URLs'}), 400
+#    for url in urls:
+
+#       scrappers = get_scrappers()
+#       scrapper = random.choice(scrappers)
+#       original_index = scrappers.index(scrapper)
+
+#       if scrapper["credits"] >= scrapper["deductible"]:
+#          if scrapper["service"] == "scrapingant":
+#             client = ScrapingAntClient(token=f"{scrapper['api_key']}")
+#             result = client.general_request(
+#                url,
+#                browser=True,
+#                return_page_source=True
+#             )
+
+#             scrapper["credits"] -= scrapper["deductible"]
+#             scrappers[original_index] = scrapper
+#             print(scrapper)
+#             html_content = result.content
+
+#          elif scrapper["service"] == "scrapingdog":
+
+#             params = {
+#                "url": url,
+#                "dynamic": "true",
+#                "api_key": f"{scrapper['api_key']}"
+#             }
+
+#             response = requests.get(f"{scrapper['service_url']}", params=params)
+
+#             scrapper["credits"] -= scrapper["deductible"]
+#             scrappers[original_index] = scrapper
+#             print(scrapper)
+#             html_content = response.text
+#          with open("scrappers.json", "w") as json_file:
+#             json.dump(scrappers, json_file, indent=3)
+#          soup = BeautifulSoup(html_content, "html.parser")
+
+#          product_title_span = soup.find("span", id="productTitle").text.strip()
+#          product_price_span = soup.find("span", class_="a-price-whole").text.strip()
+#          product_seller_span = soup.find("span", class_="offer-display-feature-text-message").text.strip()
+#          date = datetime.date.today()
+#          formatted_date = date.strftime("%d-%m-%Y")
+#          time = datetime.datetime.now().time()
+#          formatted_time = time.strftime("%I:%M:%S %p")
+
+#          scraped_data.append({ 
+#             "date": formatted_date, 
+#             "time": formatted_time, 
+#             "url": url, 
+#             "prod_title": product_title_span, 
+#             "price": product_price_span, 
+#             "seller": product_seller_span 
+#          })
+         
+#          with open("scraped_data.json", "w") as json_file:
+#             json.dump(scraped_data, json_file, indent=3)
+
+#       else:
+#          continue
+
+#    return jsonify(scraped_data)
 
 @app.route('/test', methods=['GET'])
 def test():
@@ -611,20 +868,20 @@ def test():
    print(result_array)
    return jsonify(result_array)
 
+# @celery.task
+# def schedule_tasks():
+#    schedule.every().day.at("10:30").do(prepare)
+#    schedule.every().day.at("10:45").do(prepare)
+#    schedule.every().day.at("11:00").do(prepare)
+#    schedule.every().day.at("11:15").do(prepare)
 
+#    while True:
+#       schedule.run_pending()
+#       time.sleep(10)
 
 if __name__ == '__main__':
+   # executor = ThreadPoolExecutor(max_workers=1)
+   # executor.submit(schedule_tasks)
+   # schedule_tasks()
+
    app.run(host='0.0.0.0', port=5000, debug=True)
-
-
-# if product_price_span:
-   #              product_price_span = product_price_span.text.strip()
-   #              # Define a regex pattern to extract the numeric part of the price
-   #              product_price_pattern = r'\d+\.\d+'
-   #              matches = re.findall(product_price_pattern, product_price_span)
-   #              if matches:
-   #                  product_price = float(matches[0])
-   #              else:
-   #                  product_price = None
-   #          else:
-   #              product_price = None

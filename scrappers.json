@@ -1,0 +1,154 @@
+[
+   {
+      "service": "scrapingdog",
+      "service_url": "https://api.scrapingdog.com/scrape",
+      "username": "JoiOll",
+      "api_key": "65fae4be9974026c5f8d346f",
+      "credits": 975,
+      "deductible": 1
+   },
+   {
+      "service": "scrapingant",
+      "service_url": "api.scrapingant.com",
+      "username": "mina hakim",
+      "api_key": "62f6c4543e8a47cc84ec902b3f6226cb",
+      "credits": 9956,
+      "deductible": 2
+   },
+   {
+      "service": "scrapingant",
+      "service_url": "api.scrapingant.com",
+      "username": "karo maro",
+      "api_key": "0fb24adb5f5a4d44b10cf77102ed3079",
+      "credits": 9948,
+      "deductible": 2
+   },
+   {
+      "service": "scrapingant",
+      "service_url": "api.scrapingant.com",
+      "username": "heba magdi",
+      "api_key": "fa362354a470401b8258476444deca4f",
+      "credits": 9946,
+      "deductible": 2
+   },
+   {
+      "service": "scrapingant",
+      "service_url": "api.scrapingant.com",
+      "username": "hadir atef",
+      "api_key": "50f9450dc06f45c9b3ffe85dc32ed39c",
+      "credits": 9974,
+      "deductible": 2
+   },
+   {
+      "service": "scrapingant",
+      "service_url": "api.scrapingant.com",
+      "username": "mekkawy samir",
+      "api_key": "046cc4fdc7b7414387f34aba6727e1ee",
+      "credits": 9952,
+      "deductible": 2
+   },
+   {
+      "service": "scrapingant",
+      "service_url": "api.scrapingant.com",
+      "username": "arm",
+      "api_key": "0cbb741e9ac74078aefce9c22fddcee1",
+      "credits": 9964,
+      "deductible": 2
+   },
+   {
+      "service": "scrapingant",
+      "service_url": "api.scrapingant.com",
+      "username": "hassan sabbah",
+      "api_key": "785aa1194b8e4b0daa1cf466fe0cd863",
+      "credits": 9954,
+      "deductible": 2
+   },
+   {
+      "service": "scrapingant",
+      "service_url": "api.scrapingant.com",
+      "username": "yara makram",
+      "api_key": "95db6f3df15f4f1fb9e408fc43e6c08c",
+      "credits": 9960,
+      "deductible": 2
+   },
+   {
+      "service": "scrapingant",
+      "service_url": "api.scrapingant.com",
+      "username": "nezam el molk",
+      "api_key": "896634b6cd0a46a991e1a257b66cf3fb",
+      "credits": 9960,
+      "deductible": 2
+   },
+   {
+      "service": "scrapingant",
+      "service_url": "api.scrapingant.com",
+      "username": "omar el khayam",
+      "api_key": "85f5e1dc55ed4a24bcea0a568f9436bd",
+      "credits": 9958,
+      "deductible": 2
+   },
+   {
+      "service": "scrapingant",
+      "service_url": "api.scrapingant.com",
+      "username": "l6209029",
+      "api_key": "4f8e68e803834f6fb62c908b4c7d26da",
+      "credits": 9956,
+      "deductible": 2
+   },
+   {
+      "service": "scrapingant",
+      "service_url": "api.scrapingant.com",
+      "username": "khaled farag",
+      "api_key": "444ef8ee76e14e16941f6b84624286e5",
+      "credits": 9966,
+      "deductible": 2
+   },
+   {
+      "service": "scrapingant",
+      "service_url": "api.scrapingant.com",
+      "username": "meher ahmed",
+      "api_key": "11b91fc0df9b4b8896b219c2de27ee04",
+      "credits": 9956,
+      "deductible": 2
+   },
+   {
+      "service": "scrapingant",
+      "service_url": "api.scrapingant.com",
+      "username": "mo salah",
+      "api_key": "6c242bde0ff04077b6b4f88e9ef60e16",
+      "credits": 9998,
+      "deductible": 2
+   },
+   {
+      "service": "scrapingant",
+      "service_url": "api.scrapingant.com",
+      "username": "mickey mack",
+      "api_key": "856f44363635411d9014bac5ef50ce12",
+      "credits": 9966,
+      "deductible": 2
+   },
+   {
+      "service": "scrapingant",
+      "service_url": "api.scrapingant.com",
+      "username": "mo salah",
+      "api_key": "6c242bde0ff04077b6b4f88e9ef60e16",
+      "credits": 9986,
+      "deductible": 2
+   },
+   {
+      "service": "scrapingant",
+      "service_url": "api.scrapingant.com",
+      "username": "krkr ibrahim",
+      "api_key": "e3547ac8e7954cd89a39c5608321ba7b",
+      "credits": 9990,
+      "deductible": 2
+   },
+   {
+      "service": "scrapingant",
+      "service_url": "api.scrapingant.com",
+      "username": "meher ahmed",
+      "api_key": "11b91fc0df9b4b8896b219c2de27ee04",
+      "credits": 9960,
+      "deductible": 2
+   }
+]
