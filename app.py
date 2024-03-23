@@ -130,13 +130,24 @@ def amazon():
          product_title_span = soup.find("span", id="productTitle").text.strip()
          product_price_span = soup.find("span", class_="a-price-whole").text.strip()
          product_seller_span = soup.find("span", class_="offer-display-feature-text-message").text.strip()
+
          date = datetime.date.today()
          formatted_date = date.strftime("%d-%m-%Y")
          time = datetime.datetime.now().time()
          formatted_time = time.strftime("%I:%M:%S %p")
+         if product_price_span:
+                  #   product_price_class = product_price_span
+                    product_price_span = product_price_span.replace(",", "")
+                    print(product_price_span)
+                    product_price_pattern = r'\d+.\d+'
+                    matches = re.findall(product_price_pattern, product_price_span)
+                    if matches:
+                        product_price = float(matches[0])
+                    else:
+                        product_price = None
 
          # Append the scraped data to the list
-         scraped_data.append({"time": formatted_time, "date": formatted_date, "url": url, "prod_title": product_title_span, "price": product_price_span, "seller": product_seller_span})
+         scraped_data.append({"time": formatted_time, "date": formatted_date, "url": url, "prod_title": product_title_span, "price": product_price, "seller": product_seller_span})
          with open("scraped_data.json", "w") as json_file:
           json.dump(scraped_data, json_file, indent=3)
       # Save the scraped data to a JSON file
